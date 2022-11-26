@@ -9,6 +9,7 @@ from managers.dnf import dnf
 from managers.flatpak import flatpak
 from managers.nixenv import nixenv
 from data.data import Item, merge, Color
+from time import sleep
 import sys
 
 
@@ -90,6 +91,7 @@ class Command:
         self.clean_cache: bool = False
         self.install_interactive: bool = False
         self.list_user: bool = False
+        self.in_async: bool = False
 
     def __set_defaults__(self):
         self.assume = True
@@ -126,6 +128,8 @@ class Command:
     def __base_flag__(self, flag: str) -> bool:
         if flag in ['h', 'help'] and not self.help:
             self.help
+        elif flag in ['async'] and not self.in_async:
+            self.in_async = True
         # elif flag in ['a', 'auto-resolve'] and not self.auto_resolve:
         #     self.auto_resolve = True
         # elif flag in ['c', 'clean-cache'] and not self.clean_cache:
@@ -287,8 +291,12 @@ class Command:
         message += f' Install a package/s'
         message += f'\n{"":>4}{Color.BOLD}-i --interactive{Color.END}'
         message += f'\n{"":>6}{c}Use interactive install'
+        message += f'\n{"":>4}{Color.BOLD}--async{Color.END}'
+        message += f'\n{"":>6}{c}Run interactive install asyncronously, will clear the console on each thread join'
         message += f'\n{"":>2}{Color.BOLD}search{Color.END}:'
         message += f' Search for a package/s'
+        message += f'\n{"":>4}{Color.BOLD}--async{Color.END}'
+        message += f'\n{"":>6}{c}Run searchs asyncronously, will clear the console on each thread join'
         message += f'\n{"":>2}{Color.BOLD}update{Color.END}:'
         message += f' Update a package/s'
         message += f'\n{"":>2}{Color.BOLD}remove{Color.END}:'
@@ -389,24 +397,46 @@ class Command:
         for manager in managers:
             manager.search(self.args)
 
-        results: dict[str, list[Item]] = {}
+        prev_len = 0
+        printed: list[str] = []
 
-        for manager in managers:
-            for key, value in manager.search_response().items():
-                id = key.lower()
-                if id in results:
-                    results[id].append(value)
-                else:
-                    results[id] = [value]
+        result: list[Item] = []
+        items: dict[str, list[Item]] = {}
 
-        result = [merge(value) for value in results.values()]
+        should_clear = False
 
-        result.sort(key=lambda item: item.confidence)
+        while len(printed) < len(managers):
+            sleep(1)
+            for manager in managers:
+                if self.in_async and manager.is_working() or manager.name in printed:
+                    continue
 
-        message = ''
-        for i in range(len(result) - 1, -1, -1):
-            message += f'\n{result[i].to_string(i + 1, True)}'
-        print(message[1:])
+                for key, value in manager.search_response().items():
+                    id = key.lower()
+                    if id in items:
+                        items[id].append(value)
+                    else:
+                        items[id] = [value]
+
+                printed.append(manager.name)
+
+            if prev_len == len(printed):
+                continue
+            prev_len = len(printed)
+
+            result = [merge(value) for value in items.values()]
+
+            result.sort(key=lambda item: item.confidence)
+
+            message = ''
+            for i in range(len(result) - 1, -1, -1):
+                message += f'\n{result[i].to_string(i + 1, True)}'
+
+            if should_clear:
+                run(['clear'], False)
+            else:
+                should_clear = True
+            print(message[1:])
 
         return result
 

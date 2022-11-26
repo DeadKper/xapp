@@ -34,6 +34,14 @@ class PackageManager():
     def search_response(self) -> dict[str, Item]:
         return {}
 
+    def is_working(self):
+        if self.__joined__:
+            return True
+        if self.__thread__.is_alive():
+            return True
+        self.join()
+        return False
+
     def join(self):
         if not self.__joined__:
             self.__thread__.join()
