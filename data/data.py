@@ -25,7 +25,6 @@ class Item:
                  id: str | None = None) -> None:
         self.query = query_name
         self.name = name
-        self.confidence = self.calc_confidence() + conf_decrease
         self.managers = []
         self.desc = ''
         self.archs = []
@@ -34,6 +33,7 @@ class Item:
             self.add_manager(manager)
         if not desc == None:
             self.desc = desc
+        self.confidence = self.calc_confidence() + conf_decrease
 
     def add_manager(self, manager: str):
         if manager not in self.managers:
@@ -48,6 +48,10 @@ class Item:
         managers = managers[1:]
 
         result = f'{result}{Color.BOLD}{self.name}'
+
+        if self.id != None:
+            result = f'{result} -> {self.id}'
+
         for query in self.query:
             result = sed(
                 f'({query})', f'{Color.UNDERLINE}\\1{Color.END}{Color.BOLD}', result, flags=IGNORECASE)
@@ -63,9 +67,6 @@ class Item:
 
         if number > 0:
             result = f'{Color.BLUE}{number:>3} {Color.END}{result}'
-
-        if self.id != None:
-            result = f'{result} -> {self.id}'
 
         if managers != '':
             result = f'{result} ({Color.YELLOW}{managers}{Color.END})'
@@ -94,6 +95,29 @@ class Item:
         result -= result // bonus
         if penalty_count > 0:
             result += 3000 // (len(self.query) - penalty_count + 1)
+
+        if self.id != None:
+            bonus = len(self.query) + 2
+            penalty_count = 0
+
+            id_result = 0
+            id = self.id.lower()
+            query_negative = id
+            for query in self.query:
+                query = query.lower()
+                query_negative = sed(query, '', query_negative)
+                if id.find(query) == -1:
+                    penalty_count += 1
+                else:
+                    bonus -= 1
+            for c in query_negative:
+                id_result += ord(c)
+            id_result -= id_result // bonus
+            if penalty_count > 0:
+                id_result += 3000 // (len(self.query) - penalty_count + 1)
+            if id_result < result:
+                result = id_result
+
         return result
 
 
