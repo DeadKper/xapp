@@ -34,7 +34,7 @@ class nixenv(PackageManager):
         return True
 
     def update(self, packages: list[str] | None = None, fail=False):
-        args = ['nix-env', '-f', '<nixpkgs>', '-uA']
+        args = ['nix-env', '-f', '<nixpkgs>', '-uA', '-Q']
         if packages != None:
             args.extend(packages)
         self.__execute__(args, False, fail)
