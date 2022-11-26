@@ -85,11 +85,20 @@ class Command:
         self.run_gc: bool = False
         self.update_db: bool = False
         self.__implicit_update_db__: bool = False
-        self.assume: Literal['y', 'n', None] = None
+        self.assume: Literal[True, False, None] = None
         self.help: bool = False
         self.clean_cache: bool = False
-        self.install_interactive: bool = True
-        self.list_user: bool = True
+        self.install_interactive: bool = False
+        self.list_user: bool = False
+
+    def __set_defaults__(self):
+        self.assume = True
+        self.auto_resolve = True
+        self.install_interactive = True
+        self.list_user = True
+        if len(self.managers) == 0:
+            self.managers = ['dnf', 'nix-env', 'flatpak']
+            self.__implicit_update_db__ = True
 
     def __get_flag_values__(self, i: int):
         dashes = '--' if self.unparsed[i].startswith('--') else '-'
@@ -115,39 +124,36 @@ class Command:
         return (flag, next)
 
     def __base_flag__(self, flag: str) -> bool:
-        match flag:
-            # case 'a' | 'auto-resolve':
-            #     self.auto_resolve = True
-            # case 'c' | 'clean-cache':
-            #     self.clean_cache = True
-            case 'g' | 'run-garbage-collector':
-                self.run_gc = True
-            # case 'u' | 'update-desktop-database':
-            #     self.update_db = True
-            # case 'y' | 'assume-yes':
-            #     self.assume = 'y'
-            # case 'n' | 'assume-no':
-            #     self.assume = 'n'
-            case 'h' | 'help':
-                self.help = True
-            case _:
-                return False
+        if flag in ['h', 'help'] and not self.help:
+            self.help
+        # elif flag in ['a', 'auto-resolve'] and not self.auto_resolve:
+        #     self.auto_resolve = True
+        # elif flag in ['c', 'clean-cache'] and not self.clean_cache:
+        #     self.clean_cache = True
+        elif flag in ['g', 'run-garbage-collector'] and not self.run_gc:
+            self.run_gc
+        elif flag in ['u', 'update-desktop-database'] and not self.update_db:
+            self.update_db = True
+        # elif flag in ['y', 'assume-yes'] and self.assume == None:
+        #     self.assume = True
+        # elif flag in ['n', 'assume-no'] and self.assume == None:
+        #     self.assume = False
+        else:
+            return False
         return True
 
     def __install_flag__(self, flag: str, next: str) -> bool:
-        match flag:
-            case 'i' | 'interactive':
-                self.install_interactive = True
-            case _:
-                return False
+        if flag in ['i', 'interactive'] and not self.install_interactive:
+            self.install_interactive
+        else:
+            return False
         return True
 
     def __list_flag__(self, flag: str, next: str) -> bool:
-        match flag:
-            case 'u' | 'user-installed':
-                self.list_user = True
-            case _:
-                return False
+        if flag in ['u', 'user-installed'] and not self.list_user:
+            self.list_user = True
+        else:
+            return False
         return True
 
     def __command_flag__(self, flag: str, next: str) -> bool:
@@ -166,6 +172,9 @@ class Command:
                 self.__implicit_update_db__ = True
 
     def __manager_flag__(self, flag: str, next: str) -> bool:
+        if len(self.managers) > 0:
+            return False
+
         def check_manager(single_dash: bool, manager: str):
             match manager:
                 case 'd' | 'dnf':
@@ -174,8 +183,8 @@ class Command:
                     self.__add_manager__('nix-env')
                 case 'f' | 'flatpak':
                     self.__add_manager__('flatpak')
-                case 'x' | 'xapp':
-                    self.__add_manager__('xapp')
+                # case 'x' | 'xapp':
+                #     self.__add_manager__('xapp')
                 case _:
                     error(
                         f'{manager!r} is not a valid manager{" flag" if single_dash else ""}, use \'--help\' for help')
@@ -241,13 +250,15 @@ class Command:
 
             i += 1
 
-        if len(self.managers) == 0:
-            self.__implicit_update_db__ = True
-            self.managers = ['dnf', 'nix-env', 'flatpak', 'xapp']
-
         if self.command == '' and \
                 (self.run_gc or self.update_db or self.help or self.clean_cache):
             self.command = 'xapp'
+
+        self.__set_defaults__()
+
+        if len(self.managers) == 0:
+            self.__implicit_update_db__ = True
+            self.managers = ['dnf', 'nix-env', 'flatpak']
 
         if self.command == '':
             error('use \'--help\' for help')
@@ -265,6 +276,8 @@ class Command:
         message += f'\n{Color.BOLD}Global flags{Color.END}:'
         message += f'\n{"":>2}{Color.BOLD}-g --run-garbage-collector{Color.END}'
         message += f'\n{"":>4}{c}Run garbage collector for each manager'
+        message += f'\n{"":>2}{Color.BOLD}-u --update-desktop-database{Color.END}'
+        message += f'\n{"":>4}{c}Update desktop database'
         message += f'\n{"":>2}{Color.BOLD}-h --help{Color.END}'
         message += f'\n{"":>4}{c}Print help for the command'
         message += f'\n{Color.BOLD}Commands{Color.END}:'
@@ -446,7 +459,6 @@ class Command:
 
 
 if __name__ == '__main__':
-    # command = Command(sys.argv[1:])
-    command = Command(['update-desktop-db'])
+    command = Command(sys.argv[1:])
     command.parse()
     command.run()
