@@ -97,7 +97,7 @@ class Command:
         self.install_interactive = True
         self.list_user = True
         if len(self.managers) == 0:
-            self.managers = ['dnf', 'nix-env', 'flatpak']
+            self.managers = ['dnf', 'flatpak']
             self.__implicit_update_db__ = True
 
     def __get_flag_values__(self, i: int):
