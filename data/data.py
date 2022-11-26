@@ -81,8 +81,6 @@ class Item:
         penalty_count = 0
         result = 0
         name = self.name.lower()
-        if name == 'java-11-openjdk':
-            pass
         query_negative = name
         for query in self.query:
             query = query.lower()
