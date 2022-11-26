@@ -363,6 +363,11 @@ class Command:
 
     def __update__(self):
         managers = self.__get_managers__()
+        if len(self.args) == 0:
+            for manager in managers:
+                manager.update()
+            return
+
         if len(managers) == 1:
             managers[0].update(self.args)
             return
@@ -458,6 +463,7 @@ class Command:
 
 
 if __name__ == '__main__':
-    command = Command(sys.argv[1:])
+    # command = Command(sys.argv[1:])
+    command = Command(['update', '-m', 'dnf'])
     command.parse()
     command.run()
