@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from typing import Literal
+from subprocess import Popen, PIPE
+from pathlib import Path
 from managers.manager import PackageManager
 from managers.dnf import dnf
 from managers.flatpak import flatpak
@@ -47,8 +49,23 @@ SKIP_NEXT_FLAGS = FrozenDict({
     '-m': 1
 })
 
+
+def run(args: list[str], pipe: bool, pipe_error=True):
+    process = Popen(args=args,
+                    stdout=PIPE if pipe else None,
+                    stderr=PIPE if pipe_error else None)
+    process.communicate()
+
+
+def nix_env_db():
+    run(['rsync', '-pqrLK', '--chmod=u+rwx', f'{Path.home()}/.nix-profile/share/',
+        f'{Path.home()}/.local/share/nix-env/share/', '--delete-after'], True)
+    run(['update-desktop-database',
+        f'{Path.home()}/.local/share/nix-env/share/applications'], True)
+
+
 MANAGERS_DESKTOP_DATABASE = FrozenDict({
-    'nix-env': ''
+    'nix-env': nix_env_db
 })
 
 MANAGERS: dict[str, PackageManager] = FrozenDict({
@@ -378,7 +395,9 @@ class Command:
             manager.run_gc()
 
     def __update_desktop_database__(self):
-        pass
+        for manager in self.managers:
+            if manager in MANAGERS_DESKTOP_DATABASE:
+                MANAGERS_DESKTOP_DATABASE[manager]()
 
     def __build_cache__(self):
         pass
@@ -411,6 +430,13 @@ class Command:
                 self.__list__()
             case 'help':
                 self.__help__()
+            case 'run-gc':
+                self.run_gc = True
+            case 'update-desktop-db':
+                self.update_db = True
+            case 'clean-cache':
+                if not self.clean_cache:
+                    self.__clean_cache__()
 
         if self.run_gc:
             self.__run_garbage_collector__()
@@ -420,7 +446,7 @@ class Command:
 
 
 if __name__ == '__main__':
-    command = Command(sys.argv[1:])
-    # command = Command(['search', 'java', 'openjdk'])
+    # command = Command(sys.argv[1:])
+    command = Command(['update-desktop-db'])
     command.parse()
     command.run()
