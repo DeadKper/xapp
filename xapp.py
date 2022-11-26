@@ -402,9 +402,12 @@ class Command:
         result = [merge(value) for value in results.values()]
 
         result.sort(key=lambda item: item.confidence)
+
+        message = ''
         for i in range(len(result) - 1, -1, -1):
-            line = result[i]
-            print(f'{line.to_string(i + 1, True)}')
+            message += f'\n{result[i].to_string(i + 1, True)}'
+        print(message[1:])
+
         return result
 
     def __run_garbage_collector__(self):

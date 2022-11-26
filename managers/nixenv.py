@@ -55,19 +55,20 @@ class nixenv(PackageManager):
 
     def search(self, package: list[str]):
         self.__searched_package__ = package
-        args = args = ['nix-env', '-f', '<nixpkgs>', '-qa']
+        args = args = ['nix-env', '-f', '<nixpkgs>', '-qa', '--description']
         args.extend([f'.*{value}.*' for value in package])
         self.__execute__(args, True)
 
     def search_response(self):
         output: dict[str, Item] = {}
         result, error = self.response(True)
-        skip = True
         for line in result.splitlines(False):
-            name = sed(r'-[0-9]+\..*$', '', line)
+            name, desc = sed(
+                r'([^ ]+) {2,}(.*)', r'\1\n\2', line).splitlines()
+            name = sed(r'-[0-9a-zA-Z]+\.[^ ]+$', '', name)
             if name in output:
                 continue
             conf = len(output)
             output[name] = Item(self.__searched_package__,
-                                name, conf, self.name)
+                                name, conf, self.name, desc)
         return output
