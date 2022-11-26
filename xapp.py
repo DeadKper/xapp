@@ -362,7 +362,6 @@ class Command:
         print(f'\n{Color.RED}{Color.BOLD}ERROR:{Color.END} No package manager was able to remove the program!\nUse \'list\' to search for the exact name/id of the package')
 
     def __update__(self):
-        self.__no_arg_error__()
         managers = self.__get_managers__()
         if len(managers) == 1:
             managers[0].update(self.args)
