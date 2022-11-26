@@ -5,7 +5,7 @@ from re import sub as sed
 
 class nixenv(PackageManager):
     def install(self, packages: list[str] | list[Item], fail=False):
-        args = ['nix-env', '-f', '<nixpkgs>', '-iA']
+        args = ['nix-env', '-f', '<nixpkgs>', '-iA', '-Q']
         found = False
         if isinstance(packages[0], Item):
             for item in packages:
