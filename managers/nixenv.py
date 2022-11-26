@@ -18,7 +18,6 @@ class nixenv(PackageManager):
             args.extend(packages)  # type: ignore
         if not found:
             return
-        args.append('-y')
         self.__execute__(args, False, fail)
         self.join()
         if len(self.__result__[1]) > 0:
@@ -28,7 +27,6 @@ class nixenv(PackageManager):
     def remove(self, packages: list[str], fail=False):
         args = ['nix-env', '-f', '<nixpkgs>', '-e']
         args.extend(packages)
-        args.append('-y')
         self.__execute__(args, False, fail)
         self.join()
         if len(self.__result__[1]) > 0:
@@ -39,7 +37,6 @@ class nixenv(PackageManager):
         args = ['nix-env', '-f', '<nixpkgs>', '-uA']
         if packages != None:
             args.extend(packages)
-        args.append('-y')
         self.__execute__(args, False, fail)
         self.join()
         if len(self.__result__[1]) > 0:
