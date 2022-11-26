@@ -63,12 +63,12 @@ class nixenv(PackageManager):
         output: dict[str, Item] = {}
         result, error = self.response(True)
         for line in result.splitlines(False):
-            name, desc = sed(
-                r'([^ ]+) {2,}(.*)', r'\1\n\2', line).splitlines()
+            name, desc = sed(r'([^ ]+) {2,}(.*)',
+                             r'\1\n\2.', line).splitlines()
             name = sed(r'-[0-9a-zA-Z]+\.[^ ]+$', '', name)
             if name in output:
                 continue
             conf = len(output)
             output[name] = Item(self.__searched_package__,
-                                name, conf, self.name, desc)
+                                name, conf, self.name, desc[:-1])
         return output
