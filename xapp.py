@@ -9,13 +9,28 @@ from managers.dnf import dnf
 from managers.flatpak import flatpak
 from managers.nixenv import nixenv
 from data.data import Item, merge, Color
+from re import sub as sed
 from time import sleep
 import sys
 
+NONE = 0
+WARNING = 1
+ERROR = 2
+SEPARATOR = '=-|-='
 
-def error(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-    quit(1)
+
+def error(text: str, type=NONE, code=1):
+    lines = sed(r'^(\n)+', f'\\1{SEPARATOR}', text)
+    if lines.find(SEPARATOR) != -1:
+        lines, text = lines.split(SEPARATOR)
+    else:
+        lines = ''
+    if type == WARNING:
+        text = f'{Color.BOLD}{Color.YELLOW}Warning{Color.END}: {text}'
+    elif type == ERROR:
+        text = f'{Color.BOLD}{Color.RED}Error{Color.END}: {text}'
+    print(f'{lines}{text}', file=sys.stderr)
+    quit(code)
 
 
 class FrozenDict(dict):
@@ -75,8 +90,11 @@ MANAGERS: dict[str, PackageManager] = FrozenDict({
     'nix-env': nixenv('nix-env', '', '')
 })
 
+HELP_STR = f'use \'{Color.YELLOW}-h{Color.END}\' for help'
+
 
 class Command:
+
     def __init__(self, command: list[str]) -> None:
         self.unparsed: list[str] = command
         self.command: str = ''
@@ -118,7 +136,8 @@ class Command:
             if full_flag in SKIP_NEXT_FLAGS:
                 skip_ammount = SKIP_NEXT_FLAGS[full_flag]
                 if len(self.unparsed) <= i + skip_ammount:
-                    error(f'not enough arguments for flag {full_flag!r}')
+                    error(
+                        f'not enough arguments for flag \'{Color.BOLD}{full_flag}{Color.END}\'', type=ERROR)
                 if skip_ammount == 1:
                     next = self.unparsed[i + 1]
                 else:
@@ -191,7 +210,7 @@ class Command:
                 #     self.__add_manager__('xapp')
                 case _:
                     error(
-                        f'{manager!r} is not a valid manager{" flag" if single_dash else ""}, use \'--help\' for help')
+                        f'\'{Color.BOLD}{manager}{Color.END}\' is not a valid manager{" flag" if single_dash else ""}, {HELP_STR}', type=ERROR)
 
         match flag:
             case 'm':
@@ -225,7 +244,7 @@ class Command:
 
         if not parsed:  # Not a valid flag
             error(
-                f'\'{dashes}{flag}\' is not a valid flag, use \'--help\' for help')
+                f'\'{Color.BOLD}{dashes}{flag}{Color.END}\' is not a valid flag, {HELP_STR}', type=ERROR)
 
         return i + SKIP_NEXT_FLAGS.get(f'{dashes}{flag}', 0)
 
@@ -250,7 +269,8 @@ class Command:
             elif arg in SUB_COMMANDS:
                 self.command = arg
             else:
-                error(f'{arg!r} is not a command, use \'--help\' for help')
+                error(
+                    f'\'{Color.BOLD}{arg}{Color.END}\' is not a command, {HELP_STR}', type=ERROR)
 
             i += 1
 
@@ -265,7 +285,7 @@ class Command:
             self.managers = ['dnf', 'nix-env', 'flatpak']
 
         if self.command == '':
-            error('use \'--help\' for help')
+            self.help = True
 
     def __get_managers__(self) -> list[PackageManager]:
         managers = []
@@ -316,7 +336,7 @@ class Command:
     def __no_arg_error__(self):
         if len(self.args) > 0:
             return
-        error(f'\n{Color.RED}{Color.BOLD}ERROR:{Color.END} No arguments given!')
+        error('No arguments given!', type=ERROR)
 
     def __install__(self):
         self.__no_arg_error__()
@@ -342,8 +362,7 @@ class Command:
         packages = input(message)
 
         if packages == '0':
-            print(f'\n{Color.YELLOW}Warning:{Color.END} Installation cancelled!')
-            return
+            error('Installation cancelled!', type=WARNING, code=0)
 
         install_list: list[Item] = []
         for arg in packages.split(' '):
@@ -456,7 +475,7 @@ class Command:
         self.__build_cache__()
 
     def run(self):
-        if self.help:
+        if self.help or self.command == 'help':
             self.__help__()
             return
 
@@ -478,8 +497,6 @@ class Command:
                 self.__update__()
             case 'list':
                 self.__list__()
-            case 'help':
-                self.__help__()
             case 'run-gc':
                 self.run_gc = True
             case 'update-desktop-db':
@@ -496,6 +513,9 @@ class Command:
 
 
 if __name__ == '__main__':
-    command = Command(sys.argv[1:])
-    command.parse()
-    command.run()
+    try:
+        command = Command(sys.argv[1:])
+        command.parse()
+        command.run()
+    except KeyboardInterrupt:
+        error('\nAction interrupted by user!', type=WARNING, code=0)
