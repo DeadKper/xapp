@@ -463,7 +463,6 @@ class Command:
 
 
 if __name__ == '__main__':
-    # command = Command(sys.argv[1:])
-    command = Command(['update', '-m', 'dnf'])
+    command = Command(sys.argv[1:])
     command.parse()
     command.run()
