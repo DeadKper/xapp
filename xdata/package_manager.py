@@ -1,13 +1,11 @@
 from subprocess import Popen, PIPE
 from threading import Thread
-from data.data import Item
+from xdata import *
 
 
-class PackageManager():
-    def __init__(self, name: str, config: str, cache: str) -> None:
+class PackageManager:
+    def __init__(self, name: str) -> None:
         self.name = name
-        self.config = config
-        self.cache = cache
         self.__thread__: Thread
         self.__result__ = ['', '']
         self.__piped__ = False
@@ -22,6 +20,9 @@ class PackageManager():
     def update(self, packages: list[str] | None = None, fail=False) -> bool:
         return False
 
+    def update_desktop_database(self):
+        pass
+
     def run_gc(self):
         pass
 
@@ -33,6 +34,18 @@ class PackageManager():
 
     def search_response(self) -> dict[str, Item]:
         return {}
+
+    def filter(self, packages: list[str] | list[Item], skip_managers: list[str] = []) -> list[str]:
+        if len(packages) == 0 or isinstance(packages[0], str):
+            return packages  # type: ignore
+        filtered: list[str] = []
+        for i in range(len(packages)):
+            main = packages[i].main(skip_managers)  # type: ignore
+            if main != self.name:
+                continue
+            aux: str = packages.pop(i).identifier(self.name)  # type: ignore
+            filtered.append(aux)
+        return filtered
 
     def is_working(self):
         if self.__joined__:

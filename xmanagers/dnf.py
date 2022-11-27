@@ -1,24 +1,13 @@
-from data.manager import PackageManager
-from data.data import Item, Itemv2, ItemDict
+from xdata import Item, ItemDict, PackageManager
 
 
-class test(PackageManager):
-    def install(self, packages: list[str] | list[Itemv2], fail=False):
+class dnf(PackageManager):
+    def install(self, packages: list[str] | list[Item], fail=False):
         args = ['sudo', '--', 'dnf', 'install']
-        found = False
-        if isinstance(packages[0], Itemv2):
-            item: Itemv2
-            for item in packages:  # type: ignore
-                if item.main() == self.name:
-                    args.append(item.identifier(
-                        manager=self.name))  # type: ignore
-                    found = True
-        else:
-            if len(packages) > 0:
-                found = True
-            args.extend(packages)  # type: ignore
-        if not found:
-            return
+        packages = self.filter(packages)
+        if len(packages) == 0:
+            return False
+        args.extend(packages)
         args.append('-y')
         self.__execute__(args, False, fail)
         self.join()
@@ -82,6 +71,9 @@ class test(PackageManager):
                 continue
             desc = line[double_dot + 2:]
             conf = len(item_dict.dict)
-            item_dict.add(Itemv2(self.__searched_package__, name,
+            item_dict.add(Item(self.__searched_package__, name,
                           self.name, desc, conf_addend=conf))
         return item_dict
+
+
+INSTANCE = dnf('dnf')

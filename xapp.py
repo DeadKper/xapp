@@ -4,12 +4,7 @@
 from typing import Literal
 from subprocess import Popen, PIPE
 from pathlib import Path
-from data.manager import PackageManager
-from managers.dnf import dnf
-from managers.flatpak import flatpak
-from managers.nixenv import nixenv
-from managers.test import test
-from data.data import Item, merge, Color
+from xdata import Color, PackageManager
 from re import sub as sed
 from time import sleep
 import sys
@@ -85,11 +80,7 @@ MANAGERS_DESKTOP_DATABASE = FrozenDict({
     'nix-env': nix_env_db
 })
 
-MANAGERS: dict[str, PackageManager] = FrozenDict({
-    'dnf': dnf('dnf', '', ''),
-    'flatpak': flatpak('flatpak', '', ''),
-    'nix-env': nixenv('nix-env', '', '')
-})
+MANAGERS: dict[str, PackageManager] = {}
 
 HELP_STR = f'use \'{Color.YELLOW}-h{Color.END}\' for help'
 
