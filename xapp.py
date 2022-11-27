@@ -4,10 +4,11 @@
 from typing import Literal
 from subprocess import Popen, PIPE
 from pathlib import Path
-from managers.manager import PackageManager
+from data.manager import PackageManager
 from managers.dnf import dnf
 from managers.flatpak import flatpak
 from managers.nixenv import nixenv
+from managers.test import test
 from data.data import Item, merge, Color
 from re import sub as sed
 from time import sleep

@@ -1,4 +1,4 @@
-from managers.manager import PackageManager
+from data.manager import PackageManager
 from data.data import Item
 from re import sub as sed
 
