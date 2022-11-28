@@ -60,8 +60,7 @@ class ItemDict:
         if self.keys_set:
             return
         if len(self.skip) > 0:
-            self.keys = [
-                key for key, value in self.dict.items() if value.name() != None]
+            self.keys = [key for key in self.dict.keys()]
         else:
             self.keys = list(self.dict.keys())
         self.keys_set = True
@@ -77,7 +76,7 @@ class ItemDict:
     def index(self, index: int):
         return self.dict[self.keys[index]]
 
-    def to_string(self, reverse=True, main_manager=True, managers_order: list[str] = []):
+    def to_string(self, reverse=True, main_manager=True, managers_order: list[str] | None = None):
         result = ''
         aux: Any
 
@@ -95,6 +94,7 @@ class ItemDict:
 
         for key in ordered_list:
             item = self.dict[key]
+            item.set_keys(managers_order)
             name = item.name()
             for query in self.query:
                 name = sed(
@@ -103,13 +103,15 @@ class ItemDict:
             name = f'{Color.BOLD}{name}{Color.END} '
 
             aux = item.id()
-            id = sed(f'({self.query})', f'{Color.UNDERLINE}\\1{Color.END}',
-                     f' -> {aux} ', flags=IGNORECASE) if aux != None else ''
+            id = ''
+            for query in self.query:
+                id = sed(f'({query})', f'{Color.UNDERLINE}\\1{Color.END}',
+                         f' -> {aux} ', flags=IGNORECASE) if aux != None else ''
 
             aux = item.desc()
             desc = f'\n{"":<6}{aux}' if aux != None else ''
 
-            if len(managers_order) > 0:
+            if managers_order != None:
                 aux = [man for man in managers_order if man in item.data]
             else:
                 aux = [man for man in item.data]
