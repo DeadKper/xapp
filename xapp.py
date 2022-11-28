@@ -1,5 +1,5 @@
 from xdata import FrozenDict, ItemDict, PackageManager
-from xmanagers import dnf
+from xmanagers import dnf, flatpak
 from xdata import error, DEFAULT, ERROR, WARNING, Color
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
@@ -20,6 +20,7 @@ SUB_COMMANDS = (
 
 MANAGERS: dict[str, PackageManager] = FrozenDict({
     'dnf': dnf(),
+    'flatpak': flatpak(),
 })
 
 
