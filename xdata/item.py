@@ -9,12 +9,19 @@ class Item:
         self.confidence = self.calc_confidence(
             query, name.lower(), id.lower() if id != None else None)
         self.confidence += conf_addend
+        self.keys: list[str] = [manager]
+
+    def set_keys(self, keys: list[str] | None = None):
+        if keys == None:
+            self.keys = list(self.data.keys())
+        else:
+            self.keys = [key for key in keys if key in self.data]
 
     def main(self, skip_mans: list[str] = []):
-        for man in self.data.keys():
-            if man in skip_mans:
+        for key in self.keys:
+            if key in skip_mans:
                 continue
-            return man
+            return key
         return None
 
     def identifier(self, skip_mans: list[str] = [], manager: str | None = None):
@@ -23,31 +30,32 @@ class Item:
         return self.data[manager].identifier() if manager != None else None
 
     def name(self, skip_mans: list[str] = []):
-        for man, data in self.data.items():
-            if man in skip_mans:
+        for key in self.keys:
+            if key in skip_mans:
                 continue
-            return data.name
+            return self.data[key].name
         return None
 
     def desc(self, skip_mans: list[str] = []):
-        for man, data in self.data.items():
-            if man in skip_mans:
+        for key in self.keys:
+            if key in skip_mans:
                 continue
-            if data.description != None:
-                return data.description
+            if self.data[key].description != None:
+                return self.data[key].description
         return None
 
     def id(self, skip_mans: list[str] = []):
-        for man, data in self.data.items():
-            if man in skip_mans:
+        for key in self.keys:
+            if key in skip_mans:
                 continue
-            if data.id != None:
-                return data.id
+            if self.data[key].id != None:
+                return self.data[key].id
         return None
 
     def add(self, info: dict[str, ManagerInfo]):
-        for id, data in info.items():
-            self.data[id] = data
+        for key, data in info.items():
+            self.data[key] = data
+            self.keys.append(key)
 
     def calc_confidence(self, query_list: list[str], name: str, id: str | None = None):
         bonus = len(query_list) + 2
