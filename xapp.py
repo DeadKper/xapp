@@ -119,30 +119,32 @@ class XApp:
 
         return dict
 
-    def interactive(self, dict_func: Callable[[list[str], ItemDict | None], ItemDict | None], run_func: Callable[[list[str] | ItemDict], None], args: list[str]):
+    def interactive(self, dict_func: Callable[[list[str], ItemDict | None], ItemDict | None], run_func: Callable[[list[str] | ItemDict], None], package_list: list[str], managers: list[str]):
         aux: ItemDict | None = None
         if self.args.async_search:
             print(f'{Color.YELLOW}Waiting{Color.END} for a response ', end='')
             sleep(1)
             while aux == None:
-                aux = dict_func(args, aux)
+                aux = dict_func(package_list, aux)
                 print('.', end='')
                 sleep(1)
             print('')
         else:
-            aux = dict_func(args, aux)
+            aux = dict_func(package_list, aux)
         item_dict: ItemDict = aux  # type: ignore
-        print(item_dict.to_string(), end='\n' * 2)
+        print(item_dict.to_string(managers_order=managers), end='\n' * 2)
         if self.args.async_search:
             try:
                 aux = None
-                while len(self.joined) < len(self.args.managers):
-                    aux = dict_func(args, None)
-
+                while len(self.joined) < len(managers):
+                    aux = dict_func(package_list, None)
                     if aux != None:
                         item_dict.extend(aux.dict)
                         aux = None
-                        print('\n' * 10 + item_dict.to_string(), end='\n' * 2)
+                        print(
+                            '\n' * 10 +
+                            item_dict.to_string(managers_order=managers),
+                            end='\n' * 2)
                     sleep(0.5)
             except KeyboardInterrupt:
                 pass
@@ -156,7 +158,7 @@ class XApp:
         if packages == '0':
             error('Action cancelled!', type=WARNING, code=DEFAULT)
 
-        package_dict: ItemDict = ItemDict(args)
+        package_dict: ItemDict = ItemDict(package_list)
         for arg in packages.split(' '):
             if len(arg) == 1:
                 package_dict.add(item_dict.index(int(arg) - 1))
@@ -172,13 +174,13 @@ class XApp:
             case ['install']:
                 if self.args.interactive:
                     self.interactive(self.search, self.install,
-                                     self.args.packages)
+                                     self.args.packages, self.args.managers)
                 else:
                     self.install(self.args.packages)
             case ['remove']:
                 if self.args.interactive:
                     self.interactive(self.list_packages, self.remove,
-                                     self.args.packages)
+                                     self.args.packages, self.args.managers)
                 else:
                     self.remove(self.args.packages)
             case ['update']:

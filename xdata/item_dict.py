@@ -77,7 +77,7 @@ class ItemDict:
     def index(self, index: int):
         return self.dict[self.keys[index]]
 
-    def to_string(self, reverse=True, main_manager=True):
+    def to_string(self, reverse=True, main_manager=True, managers_order: list[str] = []):
         result = ''
         aux: Any
 
@@ -109,9 +109,10 @@ class ItemDict:
             aux = item.desc(self.skip)
             desc = f'\n{"":<6}{aux}' if aux != None else ''
 
-            aux = []
-            for manager in item.data:
-                aux.append(manager)
+            if len(managers_order) > 0:
+                aux = [man for man in managers_order if man in item.data]
+            else:
+                aux = [man for man in item.data]
 
             main = f'{Color.RED}{Color.BOLD}{aux.pop(0)}{Color.END}/' if main_manager else ''
             managers = ''
