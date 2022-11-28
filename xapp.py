@@ -178,11 +178,11 @@ class XApp:
                 else:
                     self.install(self.args.packages)
             case ['remove']:
-                if self.args.interactive:
-                    self.interactive(self.list_packages, self.remove,
-                                     self.args.packages, self.args.managers)
-                else:
-                    self.remove(self.args.packages)
+                # if self.args.interactive:
+                #     self.interactive(self.list_packages, self.remove,
+                #                      self.args.packages, self.args.managers)
+                # else:
+                self.remove(self.args.packages)
             case ['update']:
                 self.update(self.args.packages)
             case ['list']:
