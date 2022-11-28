@@ -51,9 +51,8 @@ class XApp:
 
         self.actioned = False
         self.joined: list[str] = []
-        self.args.managers = ['dnf']
-        # if self.args.managers == None:
-        #     self.args.managers = ['dnf', 'flatpak']
+        if self.args.managers == None:
+            self.args.managers = ['dnf', 'flatpak']
         #     if self.args.interactive and self.args.async_search:
         #         self.args.managers.insert(1, 'nix-env')
 
