@@ -1,6 +1,6 @@
 from subprocess import Popen, PIPE
 from threading import Thread
-from xdata import *
+from xdata import ItemDict, EMPTY_ITEM_DICT
 
 
 class PackageManager:
@@ -11,41 +11,26 @@ class PackageManager:
         self.__piped__ = False
         self.__joined__ = True
 
-    def install(self, packages: list[str] | list[Item], fail=False) -> bool:
+    def install(self, packages: list[str] | ItemDict, fail=False) -> bool:
         return False
 
-    def remove(self, packages: list[str], fail=False) -> bool:
+    def remove(self, packages: list[str] | ItemDict, fail=False) -> bool:
         return False
 
     def update(self, packages: list[str] | None = None, fail=False) -> bool:
         return False
 
-    def update_desktop_database(self):
-        pass
-
     def run_gc(self):
         pass
 
-    def list_packages(self, user_installed: bool):
+    def list_packages(self, user_installed: bool, packages: list[str] | None = None) -> ItemDict:
+        return EMPTY_ITEM_DICT
+
+    def search(self, packages: list[str]):
         pass
 
-    def search(self, package: list[str]):
-        pass
-
-    def search_response(self) -> dict[str, Item]:
-        return {}
-
-    def filter(self, packages: list[str] | list[Item], skip_managers: list[str] = []) -> list[str]:
-        if len(packages) == 0 or isinstance(packages[0], str):
-            return packages  # type: ignore
-        filtered: list[str] = []
-        for i in range(len(packages)):
-            main = packages[i].main(skip_managers)  # type: ignore
-            if main != self.name:
-                continue
-            aux: str = packages.pop(i).identifier(self.name)  # type: ignore
-            filtered.append(aux)
-        return filtered
+    def search_response(self) -> ItemDict:
+        return EMPTY_ITEM_DICT
 
     def is_working(self):
         if self.__joined__:
@@ -71,12 +56,17 @@ class PackageManager:
             self.join()
         return tuple(self.__result__) if self.__joined__ else ('', '')
 
-    def __execute__(self, args: list[str], pipe: bool, pipe_error=True, shell=False):
+    def __execute__(self, args: list[str], pipe: bool, pipe_error=True, just_run=False):
+        if just_run:
+            Popen(args=args,
+                  stdout=PIPE if pipe else None,
+                  stderr=PIPE if pipe_error else None).communicate()
+            return
+
         def run():
             process = Popen(args=args,
                             stdout=PIPE if pipe else None,
-                            stderr=PIPE if pipe_error else None,
-                            shell=shell)
+                            stderr=PIPE if pipe_error else None)
             stdout, stderr = process.communicate()
             self.__result__[0] = stdout.decode() if pipe else ''
             self.__result__[1] = stderr.decode() if pipe_error else ''

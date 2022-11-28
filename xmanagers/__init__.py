@@ -1,3 +1,3 @@
-from xmanagers.dnf import INSTANCE as dnf
+from xmanagers.dnf import dnf
 
 __all__ = ['dnf']

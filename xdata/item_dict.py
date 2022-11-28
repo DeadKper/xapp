@@ -9,12 +9,37 @@ class ItemDict:
         self.query = query
         self.conf_number = 0
         self.dict: dict[str, Item] = {}
-        self.list: list[Item] = []
         self.sorted = False
+        self.keys_set = False
+        self.skip: list[str] = []
+        self.keys: list[str] = []
 
-    def expand(self, items: dict[str, Item]):
-        for key, item in items.items():
-            self.add(item, key)
+    def pop_manager(self, manager: str) -> list[str]:
+        filter: list[str] = []
+        i = 0
+        while i < len(self.keys):
+            item = self.index(i)
+            if item.main(self.skip) == manager:
+                del self.keys[i]
+                filter.append(item.identifier(
+                    manager=manager))  # type: ignore
+                continue
+            i += 1
+        if self.sorted and len(filter) > 0:
+            self.sorted = False
+            self.keys_set = False
+        return filter
+
+    def set_skip_managers(self, managers: list[str]):
+        self.skip = managers
+
+    def extend(self, items: dict[str, Item] | list[Item]):
+        if isinstance(items, dict):
+            for key, item in items.items():
+                self.add(item, key)
+        else:
+            for item in items:
+                self.add(item, item.name().lower())  # type: ignore
 
     def add(self, item: Item, name: str | None = None):
         if name == None:
@@ -24,49 +49,64 @@ class ItemDict:
         else:
             self.dict[name] = item
         self.sorted = False
+        self.keys_set = False
 
     def __merge_items__(self, in_dict: str, to_merge: Item):
         item = self.dict[in_dict]
         item.add(to_merge.data)
         item.confidence = (item.confidence + to_merge.confidence) // 2
 
-    def sort_list(self, skip_managers: list[str] = []):
+    def set_keys(self):
+        if self.keys_set:
+            return
+        if len(self.skip) > 0:
+            self.keys = [
+                key for key, value in self.dict.items() if value.name(self.skip) != None]
+        else:
+            self.keys = list(self.dict.keys())
+        self.keys_set = True
+
+    def sort(self):
         if self.sorted:
             return
-        self.list = [
-            value for value in self.dict.values() if value.name(skip_managers)]
-        self.list.sort(key=lambda value: value.confidence)
+        self.set_keys()
+        self.keys = sorted(
+            self.keys, key=lambda key: self.dict[key].confidence)
         self.sorted = True
 
-    def to_string(self, reverse=True, main_manager=True, skip_managers: list[str] = []):
+    def index(self, index: int):
+        return self.dict[self.keys[index]]
+
+    def to_string(self, reverse=True, main_manager=True):
         result = ''
         aux: Any
 
         if not self.sorted:
-            self.sort_list(skip_managers)
+            self.sort()
 
         if reverse:
-            ordered_list = reversed(self.list)
-            number = len(self.list)
+            ordered_list = reversed(self.keys)
+            number = len(self.keys)
             addend = -1
         else:
-            ordered_list = self.list
+            ordered_list = self.keys
             number = 1
             addend = 1
 
-        for item in ordered_list:
-            name = item.name(skip_managers)
+        for key in ordered_list:
+            item = self.dict[key]
+            name = item.name(self.skip)
             for query in self.query:
                 name = sed(
                     f'({query})', f'{Color.UNDERLINE}\\1{Color.END}{Color.BOLD}', name, flags=IGNORECASE)  # type: ignore
 
             name = f'{Color.BOLD}{name}{Color.END} '
 
-            aux = item.id(skip_managers)
+            aux = item.id(self.skip)
             id = sed(f'({self.query})', f'{Color.UNDERLINE}\\1{Color.END}',
                      f' -> {aux} ', flags=IGNORECASE) if aux != None else ''
 
-            aux = item.desc(skip_managers)
+            aux = item.desc(self.skip)
             desc = f'\n{"":<6}{aux}' if aux != None else ''
 
             aux = []
@@ -88,3 +128,11 @@ class ItemDict:
             number += addend
 
         return result[1:]
+
+    def __len__(self):
+        if not self.keys_set:
+            self.set_keys()
+        return len(self.keys)
+
+
+EMPTY_ITEM_DICT = ItemDict([])

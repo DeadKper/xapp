@@ -2,11 +2,15 @@ from xdata import Item, ItemDict, PackageManager
 
 
 class dnf(PackageManager):
-    def install(self, packages: list[str] | list[Item], fail=False):
+    def __init__(self) -> None:
+        super().__init__('dnf')
+
+    def install(self, packages: list[str] | ItemDict, fail=False):
         args = ['sudo', '--', 'dnf', 'install']
-        packages = self.filter(packages)
-        if len(packages) == 0:
-            return False
+        if isinstance(packages, ItemDict):
+            packages = packages.pop_manager(self.name)
+            if len(packages) == 0:
+                return False
         args.extend(packages)
         args.append('-y')
         self.__execute__(args, False, fail)
@@ -15,8 +19,12 @@ class dnf(PackageManager):
             return False
         return True
 
-    def remove(self, packages: list[str], fail=False):
+    def remove(self, packages: list[str] | ItemDict, fail=False):
         args = ['sudo', '--', 'dnf', 'remove']
+        if isinstance(packages, ItemDict):
+            packages = packages.pop_manager(self.name)
+            if len(packages) == 0:
+                return False
         args.extend(packages)
         args.append('-y')
         self.__execute__(args, False, fail)
@@ -74,6 +82,3 @@ class dnf(PackageManager):
             item_dict.add(Item(self.__searched_package__, name,
                           self.name, desc, conf_addend=conf))
         return item_dict
-
-
-INSTANCE = dnf('dnf')
