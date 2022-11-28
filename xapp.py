@@ -128,6 +128,7 @@ class XApp:
                 aux = dict_func(args, aux)
                 print('.', end='')
                 sleep(1)
+            print('')
         else:
             aux = dict_func(args, aux)
         item_dict: ItemDict = aux  # type: ignore
