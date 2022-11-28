@@ -16,38 +16,31 @@ class Item:
             self.keys = list(self.data.keys())
         else:
             self.keys = [key for key in keys if key in self.data]
+        return self.main() != None
 
-    def main(self, skip_mans: list[str] = []):
+    def main(self):
         for key in self.keys:
-            if key in skip_mans:
-                continue
             return key
         return None
 
-    def identifier(self, skip_mans: list[str] = [], manager: str | None = None):
+    def identifier(self, manager: str | None = None):
         if manager == None:
-            manager = self.main(skip_mans)
+            manager = self.main()
         return self.data[manager].identifier() if manager != None else None
 
-    def name(self, skip_mans: list[str] = []):
+    def name(self):
         for key in self.keys:
-            if key in skip_mans:
-                continue
             return self.data[key].name
         return None
 
-    def desc(self, skip_mans: list[str] = []):
+    def desc(self):
         for key in self.keys:
-            if key in skip_mans:
-                continue
             if self.data[key].description != None:
                 return self.data[key].description
         return None
 
-    def id(self, skip_mans: list[str] = []):
+    def id(self):
         for key in self.keys:
-            if key in skip_mans:
-                continue
             if self.data[key].id != None:
                 return self.data[key].id
         return None

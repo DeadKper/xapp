@@ -19,7 +19,7 @@ class ItemDict:
         i = 0
         while i < len(self.keys):
             item = self.index(i)
-            if item.main(self.skip) == manager:
+            if item.main() == manager:
                 del self.keys[i]
                 filter.append(item.identifier(
                     manager=manager))  # type: ignore
@@ -61,7 +61,7 @@ class ItemDict:
             return
         if len(self.skip) > 0:
             self.keys = [
-                key for key, value in self.dict.items() if value.name(self.skip) != None]
+                key for key, value in self.dict.items() if value.name() != None]
         else:
             self.keys = list(self.dict.keys())
         self.keys_set = True
@@ -95,18 +95,18 @@ class ItemDict:
 
         for key in ordered_list:
             item = self.dict[key]
-            name = item.name(self.skip)
+            name = item.name()
             for query in self.query:
                 name = sed(
                     f'({query})', f'{Color.UNDERLINE}\\1{Color.END}{Color.BOLD}', name, flags=IGNORECASE)  # type: ignore
 
             name = f'{Color.BOLD}{name}{Color.END} '
 
-            aux = item.id(self.skip)
+            aux = item.id()
             id = sed(f'({self.query})', f'{Color.UNDERLINE}\\1{Color.END}',
                      f' -> {aux} ', flags=IGNORECASE) if aux != None else ''
 
-            aux = item.desc(self.skip)
+            aux = item.desc()
             desc = f'\n{"":<6}{aux}' if aux != None else ''
 
             if len(managers_order) > 0:
