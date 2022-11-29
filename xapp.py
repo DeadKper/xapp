@@ -121,13 +121,11 @@ class XApp:
     def interactive(self, dict_func: Callable[[list[str], ItemDict | None], ItemDict | None], run_func: Callable[[list[str] | ItemDict], None], package_list: list[str], managers: list[str]):
         aux: ItemDict | None = None
         if self.args.async_search:
-            print(f'{Color.YELLOW}Waiting{Color.END} for a response ', end='')
+            print(f'{Color.YELLOW}Waiting{Color.END} for a response ...')
             sleep(1)
             while aux == None:
                 aux = dict_func(package_list, aux)
-                print('.', end='')
                 sleep(1)
-            print('')
         else:
             aux = dict_func(package_list, aux)
         item_dict: ItemDict = aux  # type: ignore
