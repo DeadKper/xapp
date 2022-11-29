@@ -8,8 +8,6 @@ from sys import argv
 
 VERSION = '1.0-beta'
 
-XAPP_HELP = 'xapp [options] command [packages ...]'
-
 SUB_COMMANDS = (
     'install',
     'remove',
@@ -29,18 +27,18 @@ class XApp:
     def __init__(self, args: Sequence[str]) -> None:
         parser = Parser(prog='xapp', allow_abbrev=True,
                         description='a simple package manager wrapper',
-                        usage='xapp [options] command [packages ...]',
+                        usage='xapp [options] command [packages ...], \'xapp -h\' for full help',
                         epilog='use \'--\' to stop a multi-argument option from continuing to parse arguments')
-        parser.add_argument('-c', '--cache', action='store_true',
-                            help='clean and build package cache')
-        parser.add_argument('-d', '--database', action='store_true',
-                            help='update desktop dabase for all managers')
+        # parser.add_argument('-c', '--cache', action='store_true',
+        #                     help='clean and build package cache')
+        # parser.add_argument('-d', '--database', action='store_true',
+        #                     help='update desktop dabase for all managers')
         parser.add_argument('-v', '--version', action='version',
                             version=f'%(prog)s v{VERSION}')
         parser.add_argument('-a', '--async-search', action='store_true',
                             help='use async search, use ctrl+c to stop the search')
         parser.add_argument('-i', '--interactive', action='store_true',
-                            help='use interactive install/remove')
+                            help='use interactive install')
         parser.add_argument('-u', '--user-installed', action='store_true',
                             help='only list user installed packages')
         parser.add_argument('-m', '--managers', action='store',
