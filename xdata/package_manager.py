@@ -1,6 +1,6 @@
 from subprocess import Popen, PIPE
 from threading import Thread
-from xdata import ItemDict, EMPTY_ITEM_DICT
+from xdata import ItemDict, EMPTY_ITEM_DICT, sudoloop, error, ERROR
 
 
 class PackageManager:
@@ -10,6 +10,7 @@ class PackageManager:
         self.__result__ = ['', '']
         self.__piped__ = False
         self.__joined__ = True
+        self.use_sudo = False
 
     def install(self, packages: list[str] | ItemDict, fail=False) -> bool:
         return False
@@ -57,6 +58,10 @@ class PackageManager:
         return tuple(self.__result__) if self.__joined__ else ('', '')
 
     def __execute__(self, args: list[str], pipe: bool, pipe_error=True, just_run=False):
+        if self.use_sudo:
+            if not sudoloop():
+                error(f'{self.name!r} needs sudo to work!', type=ERROR)
+
         if just_run:
             Popen(args=args,
                   stdout=PIPE if pipe else None,

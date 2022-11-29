@@ -30,9 +30,12 @@ sudo_loop_thread: Thread
 
 
 def _sudo_loop():
+    count = 0
     while run_sudo_loop:
-        sleep(30)
-        Popen(['sudo', 'echo', '""'], stdout=PIPE, stderr=PIPE)
+        sleep(1)
+        count += 1
+        if count == 30:
+            Popen(['sudo', 'echo', '""'], stdout=PIPE, stderr=PIPE)
 
 
 def sudoloop(run=True):
