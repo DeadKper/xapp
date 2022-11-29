@@ -59,4 +59,4 @@ def sudoloop(run=True):
     elif not run and sudo_loop_thread.is_alive():
         sudo_loop_thread.join()
         return True
-    return False
+    return True
