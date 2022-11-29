@@ -73,7 +73,7 @@ class nixenv(PackageManager):
                 continue
             conf = len(item_dict.dict)
             item_dict.add(Item(self.__searched_package__, name,
-                          self.name, desc, conf_addend=conf))
+                          self.name, desc[:-1] if len(desc) > 1 else None, conf_addend=conf))
         return item_dict
 
     def update_dekstop_db(self):
