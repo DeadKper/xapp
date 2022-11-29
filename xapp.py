@@ -62,6 +62,7 @@ class XApp:
 
             if include_slow:
                 managers.insert(1, 'nix-env')
+            self.args.managers = managers
         return managers
 
     def check_args(self, args):
