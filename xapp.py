@@ -1,9 +1,8 @@
-from xdata import FrozenDict, ItemDict, PackageManager
+from xdata import FrozenDict, ItemDict, PackageManager, XNamespace
 from xmanagers import dnf, flatpak, nixenv
 from xdata import error, DEFAULT, ERROR, WARNING, Color, sudoloop
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
-from types import SimpleNamespace
 from time import sleep
 from sys import argv, stderr
 
@@ -23,17 +22,6 @@ MANAGERS: dict[str, PackageManager] = FrozenDict({
     'flatpak': flatpak(),
     'nix-env': nixenv(),
 })
-
-
-class XNamespace(SimpleNamespace):
-    database: bool
-    async_search: bool
-    interactive: bool
-    garbage_collector: bool
-    user_installed: bool
-    command: list[str]
-    managers: list[str]
-    packages: list[str]
 
 
 class XApp:
