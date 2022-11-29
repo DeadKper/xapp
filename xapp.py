@@ -1,5 +1,5 @@
 from xdata import FrozenDict, ItemDict, PackageManager
-from xmanagers import dnf, flatpak
+from xmanagers import dnf, flatpak, nixenv
 from xdata import error, DEFAULT, ERROR, WARNING, Color, sudoloop
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
@@ -21,6 +21,7 @@ SUB_COMMANDS = (
 MANAGERS: dict[str, PackageManager] = FrozenDict({
     'dnf': dnf(),
     'flatpak': flatpak(),
+    'nix-env': nixenv(),
 })
 
 
@@ -54,8 +55,8 @@ class XApp:
         self.joined: list[str] = []
         if self.args.managers == None:
             self.args.managers = ['dnf', 'flatpak']
-        #     if self.args.interactive and self.args.async_search:
-        #         self.args.managers.insert(1, 'nix-env')
+            if self.args.interactive and self.args.async_search:
+                self.args.managers.insert(1, 'nix-env')
 
     def check_args(self, args):
         if len(args) > 0:
@@ -196,6 +197,5 @@ if __name__ == '__main__':
     try:
         xapp = XApp(argv[1:])
         xapp.run()
-
     except KeyboardInterrupt:
         error('\nAction interrupted by user!', type=WARNING, code=DEFAULT)
