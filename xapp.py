@@ -133,7 +133,7 @@ class XApp:
         else:
             aux = dict_func(package_list, aux)
         item_dict: ItemDict = aux  # type: ignore
-        print(item_dict.to_string(managers_order=managers), end='\n' * 2)
+        print(item_dict.to_string(managers_order=managers))
         if self.args.async_search:
             try:
                 aux = None
@@ -143,14 +143,13 @@ class XApp:
                         item_dict.extend(aux.dict)
                         aux = None
                         print(
-                            '\n' * 10 +
-                            item_dict.to_string(managers_order=managers),
-                            end='\n' * 2)
+                            '\n' * 30 +
+                            item_dict.to_string(managers_order=managers))
                     sleep(0.5)
             except KeyboardInterrupt:
                 pass
 
-        message = f' {Color.BLUE}::{Color.END} '
+        message = f'\n {Color.BLUE}::{Color.END} '
         message += f'{Color.BOLD}Enter packages to install{Color.END}'
         message += f' (eg: 1 2 3 5, 1-3 5) [0 to exit]'
         message += f'\n {Color.BLUE}::{Color.END} {Color.BOLD}->{Color.END} '
