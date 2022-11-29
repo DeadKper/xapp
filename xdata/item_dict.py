@@ -104,9 +104,9 @@ class ItemDict:
 
             aux = item.id()
             id = ''
-            for query in self.query:
-                id = sed(f'({query})', f'{Color.UNDERLINE}\\1{Color.END}',
-                         f' -> {aux} ', flags=IGNORECASE) if aux != None else ''
+            # for query in self.query:
+            #     id = sed(f'({query})', f'{Color.UNDERLINE}\\1{Color.END}',
+            #              f'-> {aux} ', flags=IGNORECASE) if aux != None else ''
 
             aux = item.desc()
             desc = f'\n{"":<6}{aux}' if aux != None else ''
@@ -116,14 +116,15 @@ class ItemDict:
             else:
                 aux = [man for man in item.data]
 
-            main = f'{Color.RED}{Color.BOLD}{aux.pop(0)}{Color.END}/' if main_manager else ''
+            main = f'{Color.GREEN}{Color.BOLD}{aux.pop(0)}{Color.END}/' if main_manager else ''
             managers = ''
             for manager in aux:
                 managers += f',{manager}'
             managers = f'({Color.YELLOW}{managers[1:]}{Color.END}) ' if len(
                 managers) > 0 else ''
 
-            confidence = f'[{Color.GREEN}{item.confidence}{Color.END}]'
+            # confidence = f'[{Color.GREEN}{item.confidence}{Color.END}]'
+            confidence = ''
 
             count = f'{Color.BLUE}{number:>4}{Color.END} '
 
