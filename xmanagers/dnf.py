@@ -4,7 +4,6 @@ from xdata import Item, ItemDict, PackageManager
 class dnf(PackageManager):
     def __init__(self) -> None:
         super().__init__('dnf')
-        self.use_sudo = True
 
     def install(self, packages: list[str] | ItemDict, fail=False):
         args = ['sudo', '--', 'dnf', 'install']
