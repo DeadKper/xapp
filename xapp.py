@@ -154,6 +154,7 @@ class XApp:
         aux: ItemDict | None = None
         package_list: list[str] = self.args.packages
         managers: list[str] = self.get_managers()
+        manager_dict = {manager[:1]: manager for manager in managers}
         if self.args.async_search:
             print(f'{Color.YELLOW}Waiting{Color.END} for a response ...')
             sleep(1)
@@ -167,9 +168,10 @@ class XApp:
         if self.args.async_search:
             try:
                 aux = None
+                sleep(0.5)
                 while len(self.joined) < len(managers):
                     aux = dict_func(package_list, None)
-                    if aux != None:
+                    if aux != None and len(aux) > 0:
                         item_dict.extend(aux.dict)
                         aux = None
                         print(
@@ -179,25 +181,43 @@ class XApp:
             except KeyboardInterrupt:
                 pass
 
-        message = f'\n {Color.BLUE}::{Color.END} '
-        message += f'{Color.BOLD}Enter packages to install{Color.END}'
-        message += f' (eg: 1 2 3 5, 1-3 5) [0 to exit]'
-        message += f'\n {Color.BLUE}::{Color.END} {Color.BOLD}->{Color.END} '
+        prefix = f' {Color.BLUE}::{Color.END} '
+        message = f'\n{prefix}Enter packages to install (eg: 1 2 3 5, 1-3 5) [0 to exit]'
+        message += f'\n{prefix}Use d, n or f to specify the package manager (eg: 1n, 2, 3-6f)'
+        message += f'\n{prefix}{Color.BOLD} >{Color.END} '
 
         packages = input(message)
         if packages == '0':
             error('Action cancelled!', type=WARNING, code=DEFAULT)
 
-        package_dict: ItemDict = ItemDict(package_list)
-        for arg in packages.split(' '):
-            if len(arg) == 1:
-                package_dict.add(item_dict.index(int(arg) - 1))
-            else:
-                start, stop = arg.split('-')
-                package_dict.extend(
-                    [item_dict.index(i) for i in range(int(start) - 1, int(stop))])
+        try:
+            package_dict: ItemDict = ItemDict(package_list)
+            for arg in packages.split(' '):
+                char = arg[-1:]
+                has_manager = isinstance(char, str)
 
-        run_func(package_dict)
+                if has_manager:
+                    arg = arg[:-1]
+
+                if len(arg) < 3:
+                    items = [item_dict.index(int(arg) - 1)]
+                    package_dict.add(item_dict.index(int(arg) - 1))
+                else:
+                    start, stop = arg.split('-')
+                    items = [item_dict.index(i) for i in
+                             range(int(start) - 1, int(stop))]
+
+                if has_manager:
+                    for item in items:
+                        item.set_keys([manager_dict[char]])
+
+                package_dict.extend(items)
+
+            run_func(package_dict)
+        except KeyboardInterrupt:
+            pass
+        except:
+            error('Invalid package was entered!', type=ERROR, code=ERROR)
 
     def run(self):
         match self.args.command:
