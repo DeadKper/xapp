@@ -3,6 +3,7 @@ from xmanagers import dnf, flatpak, nixenv
 from xdata import error, DEFAULT, ERROR, WARNING, Color, sudoloop
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
+from types import SimpleNamespace
 from time import sleep
 from sys import argv, stderr
 
@@ -22,6 +23,17 @@ MANAGERS: dict[str, PackageManager] = FrozenDict({
     'flatpak': flatpak(),
     'nix-env': nixenv(),
 })
+
+
+class XNamespace(SimpleNamespace):
+    database: bool
+    async_search: bool
+    interactive: bool
+    garbage_collector: bool
+    user_installed: bool
+    command: list[str]
+    managers: list[str]
+    packages: list[str]
 
 
 class XApp:
@@ -50,7 +62,7 @@ class XApp:
                             help='command to execute')
         parser.add_argument('packages', nargs='*',
                             help='packages to install, remove, etc...')
-        self.args = parser.parse_args(args=args)
+        self.args = parser.parse_args(args=args, namespace=XNamespace)
 
         self.actioned = False
         self.joined: list[str] = []
@@ -62,7 +74,6 @@ class XApp:
 
             if include_slow:
                 managers.insert(1, 'nix-env')
-            self.args.managers = managers
         return managers
 
     def check_args(self, args):
