@@ -43,7 +43,7 @@ class XApp:
         parser.add_argument('-u', '--user-installed', action='store_true',
                             help='only list user installed packages')
         parser.add_argument('-m', '--managers', action='store',
-                            help='package managers to enable', choices=MANAGERS.keys(), nargs='+')
+                            help='package managers to enabled', choices=MANAGERS.keys(), nargs='+')
         parser.add_argument('command', nargs=1, choices=SUB_COMMANDS,
                             help='command to execute')
         parser.add_argument('packages', nargs='*',
