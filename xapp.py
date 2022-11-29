@@ -195,7 +195,7 @@ class XApp:
             package_dict: ItemDict = ItemDict(package_list)
             for arg in packages.split(' '):
                 char = arg[-1:]
-                has_manager = isinstance(char, str)
+                has_manager = char.isalpha()
 
                 if has_manager:
                     arg = arg[:-1]
