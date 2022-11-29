@@ -32,8 +32,8 @@ class XApp:
                         epilog='use \'--\' to stop a multi-argument option from continuing to parse arguments')
         # parser.add_argument('-c', '--cache', action='store_true',
         #                     help='clean and build package cache')
-        # parser.add_argument('-d', '--database', action='store_true',
-        #                     help='update desktop dabase for all managers')
+        parser.add_argument('-d', '--database', action='store_true',
+                            help='update desktop dabase for all managers')
         parser.add_argument('-v', '--version', action='version',
                             version=f'%(prog)s v{VERSION}')
         parser.add_argument('-a', '--async-search', action='store_true',
@@ -90,6 +90,14 @@ class XApp:
             print(
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} running garbage collector...', file=stderr)
             MANAGERS[manager].run_gc()
+
+    def update_desktopdb(self):
+        for manager in self.get_managers():
+            if not MANAGERS[manager].has_desktopdb:
+                continue
+            print(
+                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} is updating it\'s desktop database...', file=stderr)
+            MANAGERS[manager].update_dekstop_db()
 
     def update(self, packages: list[str] | None):
         if packages != None and len(packages) == 0:
@@ -212,6 +220,9 @@ class XApp:
 
         if self.args.garbage_collector:
             self.run_gc()
+
+        if self.args.database:
+            self.update_desktopdb()
 
         sudoloop(False)
 

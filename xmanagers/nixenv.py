@@ -4,7 +4,7 @@ from re import sub as sed
 
 class nixenv(PackageManager):
     def __init__(self) -> None:
-        super().__init__('nix-env')
+        super().__init__('nix-env', True)
 
     def install(self, packages: list[str] | ItemDict, fail=False):
         args = ['nix-env', '-f', '<nixpkgs>', '-iA', '-Q']
@@ -73,3 +73,9 @@ class nixenv(PackageManager):
             item_dict.add(Item(self.__searched_package__, name,
                           self.name, desc, conf_addend=conf))
         return item_dict
+
+    def update_dekstop_db(self):
+        self.__execute__(['rsync', '-prLK', '--chmod=u+rwx', f'{self.home}/.nix-profile/share/',
+                         f'{self.home}/.local/share/nix-env/share/', '--delete-after'], True, just_run=True)
+        self.__execute__(['update-desktop-database',
+                         f'{self.home}/.local/share/nix-env/share/'], False, False, True)

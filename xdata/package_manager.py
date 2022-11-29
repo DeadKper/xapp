@@ -1,15 +1,18 @@
 from subprocess import Popen, PIPE
 from threading import Thread
 from xdata import ItemDict, EMPTY_ITEM_DICT, sudoloop, error, ERROR
+from pathlib import Path
 
 
 class PackageManager:
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, has_desktopdb=False) -> None:
         self.name = name
         self.__thread__: Thread
         self.__result__ = ['', '']
         self.__piped__ = False
         self.__joined__ = True
+        self.home = Path.home()
+        self.has_desktopdb = has_desktopdb
 
     def install(self, packages: list[str] | ItemDict, fail=False) -> bool:
         return False
@@ -32,6 +35,9 @@ class PackageManager:
     def search_response(self) -> ItemDict:
         return EMPTY_ITEM_DICT
 
+    def update_dekstop_db(self):
+        pass
+
     def is_working(self):
         if self.__joined__:
             return True
@@ -44,12 +50,6 @@ class PackageManager:
         if not self.__joined__:
             self.__thread__.join()
             self.__joined__ = True
-
-    def should_respond(self):
-        return self.__piped__
-
-    def has_response(self):
-        return self.__piped__ and self.__joined__
 
     def response(self, join=False) -> tuple[str, str]:
         if join:
