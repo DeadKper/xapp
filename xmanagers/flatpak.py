@@ -46,7 +46,7 @@ class flatpak(PackageManager):
         return True
 
     def run_gc(self):
-        self.__execute__(['flatpak', 'uninstall', '--unused'], False)
+        self.__execute__(['flatpak', 'uninstall', '--unused', '-y'], False)
         self.join()
 
     def list_packages(self, user_installed: bool, packages: list[str] | None = None):
