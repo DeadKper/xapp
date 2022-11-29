@@ -124,7 +124,7 @@ class XApp:
             if dict == None:
                 dict = aux
             else:
-                dict.extend(aux.dict)
+                dict.extend(aux.items)
         return dict
 
     def search(self, packages: list[str], dict: ItemDict | None = None) -> ItemDict | None:
@@ -146,7 +146,10 @@ class XApp:
             if dict == None:
                 dict = aux
             else:
-                dict.extend(aux.dict)
+                dict.extend(aux.items)
+
+        if dict and not self.args.async_search:
+            print(dict.to_string(managers_order=managers))
 
         return dict
 
@@ -168,16 +171,15 @@ class XApp:
         if self.args.async_search:
             try:
                 aux = None
-                sleep(0.5)
                 while len(self.joined) < len(managers):
-                    aux = dict_func(package_list, None)
-                    if aux != None and len(aux) > 0:
-                        item_dict.extend(aux.dict)
-                        aux = None
-                        print(
-                            '\n' * 30 +
-                            item_dict.to_string(managers_order=managers))
                     sleep(0.5)
+                    aux = dict_func(package_list, None)
+                    if aux == None or len(aux) == 0:
+                        continue
+                    item_dict.extend(aux.items)
+                    aux = None
+                    print('\n' * 30 +
+                          item_dict.to_string(managers_order=managers))
             except KeyboardInterrupt:
                 pass
 
@@ -201,7 +203,6 @@ class XApp:
 
                 if len(arg) < 3:
                     items = [item_dict.index(int(arg) - 1)]
-                    package_dict.add(item_dict.index(int(arg) - 1))
                 else:
                     start, stop = arg.split('-')
                     items = [item_dict.index(i) for i in
@@ -209,7 +210,7 @@ class XApp:
 
                 if has_manager:
                     for item in items:
-                        item.set_keys([manager_dict[char]])
+                        item.keys = [manager_dict[char]]
 
                 package_dict.extend(items)
 

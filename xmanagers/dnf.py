@@ -1,4 +1,4 @@
-from xdata import Item, ItemDict, PackageManager
+from xdata import ItemDict, PackageManager
 
 
 class dnf(PackageManager):
@@ -75,10 +75,8 @@ class dnf(PackageManager):
             double_dot = line.find(':')
             dot = line[:double_dot].rfind('.')
             name = line[:dot]
-            if name in item_dict.dict:
+            if name in item_dict.items:
                 continue
-            desc = line[double_dot + 2:]
-            conf = len(item_dict.dict)
-            item_dict.add(Item(self.__searched_package__, name,
-                          self.name, desc, conf_addend=conf))
+            description = line[double_dot + 2:]
+            item_dict.add(self.name, name, description)
         return item_dict

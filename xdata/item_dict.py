@@ -1,18 +1,20 @@
 from typing import Any
 from re import sub as sed
 from re import IGNORECASE
-from xdata import Color, Item
+from xdata import Color, Item, item_confidence, JSON
+from time import time
 
 
-class ItemDict:
-    def __init__(self, query: list[str]) -> None:
+class ItemDict(JSON):
+    def __init__(self, query: list[str], items: dict[str, dict] = {}, sorted=False, keys_set=False, keys: list[str] = [], expiration: int | None = None) -> None:
         self.query = query
-        self.conf_number = 0
-        self.dict: dict[str, Item] = {}
-        self.sorted = False
-        self.keys_set = False
-        self.skip: list[str] = []
-        self.keys: list[str] = []
+        self.items: dict[str, Item] = {}
+        self.sorted = sorted
+        self.keys_set = keys_set
+        self.keys = keys
+        self.expiration = time() + 21600 if not expiration else expiration
+        for key, value in items.items():
+            self.items[key] = Item(**value)
 
     def pop_manager(self, manager: str) -> list[str]:
         filter: list[str] = []
@@ -21,8 +23,7 @@ class ItemDict:
             item = self.index(i)
             if item.main() == manager:
                 del self.keys[i]
-                filter.append(item.identifier(
-                    manager=manager))  # type: ignore
+                filter.append(item.id(manager=manager))  # type: ignore
                 continue
             i += 1
         if self.sorted and len(filter) > 0:
@@ -30,51 +31,48 @@ class ItemDict:
             self.keys_set = False
         return filter
 
-    def set_skip_managers(self, managers: list[str]):
-        self.skip = managers
-
     def extend(self, items: dict[str, Item] | list[Item]):
         if isinstance(items, dict):
             for key, item in items.items():
-                self.add(item, key)
+                self.add_item(key, item)
         else:
             for item in items:
-                self.add(item, item.name().lower())  # type: ignore
+                self.add_item(item.name.lower(), item)  # type: ignore
 
-    def add(self, item: Item, name: str | None = None):
-        if name == None:
-            name = item.name().lower()  # type: ignore
-        if name in self.dict:
-            self.__merge_items__(name, item)
+    def add(self, manager: str, name: str, description: str | None = None, id: str | None = None):
+        item = Item(item_confidence(self.query, name, id))
+        item.add(manager, name, description, id)
+        self.add_item(item.name.lower(), item)  # type: ignore
+
+    def add_item(self, key: str, item: Item):
+        if key in self.items:
+            self.__merge_items__(key, item)
         else:
-            self.dict[name] = item
+            self.items[key] = item
         self.sorted = False
         self.keys_set = False
 
     def __merge_items__(self, in_dict: str, to_merge: Item):
-        item = self.dict[in_dict]
-        item.add(to_merge.data)
+        item = self.items[in_dict]
+        item.extend(to_merge.managers)
         item.confidence = (item.confidence + to_merge.confidence) // 2
 
-    def set_keys(self):
+    def __set_keys__(self):
         if self.keys_set:
             return
-        if len(self.skip) > 0:
-            self.keys = [key for key in self.dict.keys()]
-        else:
-            self.keys = list(self.dict.keys())
+        self.keys = list(self.items.keys())
         self.keys_set = True
 
     def sort(self):
         if self.sorted:
             return
-        self.set_keys()
+        self.__set_keys__()
         self.keys = sorted(
-            self.keys, key=lambda key: self.dict[key].confidence)
+            self.keys, key=lambda key: self.items[key].confidence)
         self.sorted = True
 
     def index(self, index: int):
-        return self.dict[self.keys[index]]
+        return self.items[self.keys[index]]
 
     def to_string(self, reverse=True, main_manager=True, managers_order: list[str] | None = None):
         result = ''
@@ -93,9 +91,9 @@ class ItemDict:
             addend = 1
 
         for key in ordered_list:
-            item = self.dict[key]
-            item.set_keys(managers_order)
-            name = item.name()
+            item = self.items[key]
+            item.keys = managers_order
+            name = item.name
             for query in self.query:
                 name = sed(
                     f'({query})', f'{Color.UNDERLINE}\\1{Color.END}{Color.BOLD}', name, flags=IGNORECASE)  # type: ignore
@@ -108,13 +106,13 @@ class ItemDict:
             #     id = sed(f'({query})', f'{Color.UNDERLINE}\\1{Color.END}',
             #              f'-> {aux} ', flags=IGNORECASE) if aux != None else ''
 
-            aux = item.desc()
+            aux = item.description
             desc = f'\n{"":<6}{aux}' if aux != None else ''
 
             if managers_order != None:
-                aux = [man for man in managers_order if man in item.data]
+                aux = [man for man in managers_order if man in item.managers]
             else:
-                aux = [man for man in item.data]
+                aux = [man for man in item.managers]
 
             main = f'{Color.GREEN}{Color.BOLD}{aux.pop(0)}{Color.END}/' if main_manager else ''
             managers = ''
@@ -135,7 +133,7 @@ class ItemDict:
 
     def __len__(self):
         if not self.keys_set:
-            self.set_keys()
+            self.__set_keys__()
         return len(self.keys)
 
 

@@ -1,91 +1,58 @@
-from re import sub as sed
-from xdata import ManagerInfo
+from xdata import ManagerInfo, JSON
 
 
-class Item:
-    def __init__(self, query: list[str], name: str, manager: str, desc: str | None = None, id: str | None = None, conf_addend=0) -> None:
-        self.data: dict[str, ManagerInfo] = {}
-        self.data[manager] = ManagerInfo(name, desc, id)
-        self.confidence = self.calc_confidence(
-            query, name.lower(), id.lower() if id != None else None)
-        self.confidence += conf_addend
-        self.keys: list[str] = [manager]
+class Item(JSON):
+    def __init__(self, confidence: int, name: str | None = None, description: str | None = None, managers: dict[str, dict] = {}, _keys: list[str] | None = None) -> None:
+        self.confidence = confidence
+        self.name = name
+        self.description = description
+        self.managers: dict[str, ManagerInfo] = {}
+        for key, value in managers.items():
+            self.managers[key] = ManagerInfo(**value)
+        self.keys = list(self.managers.keys()) if _keys == None else _keys
 
-    def set_keys(self, keys: list[str] | None = None):
-        if keys == None:
-            self.keys = list(self.data.keys())
-        else:
-            self.keys = [key for key in keys if key in self.data]
-        return self.main() != None
+    @property
+    def keys(self):
+        return self._keys
+
+    @keys.setter
+    def keys(self, value: list[str] | None):
+        if value == None:
+            return
+        self._keys = [key for key in value if key in self.managers]
+        name = None
+        description = None
+        for key in self.keys:
+            manager = self.managers[key]
+            if name == None and manager.name:
+                name = manager.name
+            if description == None and manager.description:
+                description = manager.description
+        self.name = name
+        self.description = description
+
+    def add(self, manager: str, data: str, description: str | None = None, id: str | None = None):
+        self.add_manager(manager, ManagerInfo(data, description, id))
+
+    def add_manager(self, manager: str, info: ManagerInfo):
+        self.managers[manager] = info
+        if not self.name:
+            self.name = info.name
+        if not self.description and info.description:
+            self.description = info.description
+        self.keys.append(manager)
+
+    def extend(self, managers: dict[str, ManagerInfo]):
+        for key, value in managers.items():
+            self.add_manager(key, value)
+
+    def id(self, manager: str | None = None):
+        if len(self.keys) == 0:
+            return None
+        if manager == None:
+            manager = self.keys[0]
+        values = self.managers[manager]
+        return values.id if values.id else values.name
 
     def main(self):
-        for key in self.keys:
-            return key
-        return None
-
-    def identifier(self, manager: str | None = None):
-        if manager == None:
-            manager = self.main()
-        return self.data[manager].identifier() if manager != None else None
-
-    def name(self):
-        for key in self.keys:
-            return self.data[key].name
-        return None
-
-    def desc(self):
-        for key in self.keys:
-            if self.data[key].description != None:
-                return self.data[key].description
-        return None
-
-    def id(self):
-        for key in self.keys:
-            if self.data[key].id != None:
-                return self.data[key].id
-        return None
-
-    def add(self, info: dict[str, ManagerInfo]):
-        for key, data in info.items():
-            self.data[key] = data
-            self.keys.append(key)
-
-    def calc_confidence(self, query_list: list[str], name: str, id: str | None = None):
-        bonus = len(query_list) + 2
-        penalty_count = 0
-        result = 0
-        query_negative = name
-        for query in query_list:
-            query = query.lower()
-            query_negative = sed(query, '', query_negative)
-            if name.find(query) == -1:
-                penalty_count += 1
-            else:
-                bonus -= 1
-        for c in query_negative:
-            result += ord(c)
-        result -= result // bonus
-        if penalty_count > 0:
-            result += 3000 // (len(query_list) - penalty_count + 1)
-
-        if id != None:
-            bonus = len(query_list) + 2
-            penalty_count = 0
-            id_result = 0
-            query_negative = id
-            for query in query_list:
-                query = query
-                query_negative = sed(query, '', query_negative)
-                if id.find(query) == -1:
-                    penalty_count += 1
-                else:
-                    bonus -= 1
-            for c in query_negative:
-                id_result += ord(c)
-            id_result -= id_result // bonus
-            if penalty_count > 0:
-                id_result += 3000 // (len(query_list) - penalty_count + 1)
-            if id_result < result:
-                result = id_result
-
-        return result
+        return self.keys[0] if len(self.keys) > 0 else None

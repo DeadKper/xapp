@@ -1,4 +1,4 @@
-from xdata import Item, ItemDict, PackageManager
+from xdata import ItemDict, PackageManager
 from re import split
 
 
@@ -70,8 +70,6 @@ class flatpak(PackageManager):
             result = split(r'\t+', line)
             if len(result) != 3:
                 continue
-            name, id, desc = split(r'\t+', line)
-            conf = len(item_dict.dict)
-            item_dict.add(Item(self.__searched_package__, name,
-                          self.name, desc, conf_addend=conf, id=id))
+            name, id, description = result
+            item_dict.add(self.name, name, description, id)
         return item_dict

@@ -60,3 +60,44 @@ def sudoloop(run=True):
         sudo_loop_thread.join()
         return True
     return True
+
+
+def item_confidence(query_list: list[str], name: str, id: str | None = None):
+    bonus = len(query_list) + 2
+    penalty_count = 0
+    result = 0
+    query_negative = name
+    for query in query_list:
+        query = query.lower()
+        query_negative = sed(query, '', query_negative)
+        if name.find(query) == -1:
+            penalty_count += 1
+        else:
+            bonus -= 1
+    for c in query_negative:
+        result += ord(c)
+    result -= result // bonus
+    if penalty_count > 0:
+        result += 3000 // (len(query_list) - penalty_count + 1)
+
+    if id != None:
+        bonus = len(query_list) + 2
+        penalty_count = 0
+        id_result = 0
+        query_negative = id
+        for query in query_list:
+            query = query
+            query_negative = sed(query, '', query_negative)
+            if id.find(query) == -1:
+                penalty_count += 1
+            else:
+                bonus -= 1
+        for c in query_negative:
+            id_result += ord(c)
+        id_result -= id_result // bonus
+        if penalty_count > 0:
+            id_result += 3000 // (len(query_list) - penalty_count + 1)
+        if id_result < result:
+            result = id_result
+
+    return result

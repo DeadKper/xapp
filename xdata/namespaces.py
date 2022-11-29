@@ -1,12 +1,6 @@
 from types import SimpleNamespace
 
 
-class ItemNamespace(SimpleNamespace):
-    name: str
-    description: str | None
-    id: str | None
-
-
 class XNamespace(SimpleNamespace):
     database: bool
     async_search: bool

@@ -1,4 +1,4 @@
-from xdata import Item, ItemDict, PackageManager
+from xdata import ItemDict, PackageManager
 from re import sub as sed
 
 
@@ -69,11 +69,10 @@ class nixenv(PackageManager):
             name, desc = sed(r'([^ ]+) {2,}(.*)',
                              r'\1\n\2.', line).splitlines()
             name = sed(r'-[0-9a-zA-Z]+\.[^ ]+$', '', name)
-            if name in item_dict.dict:
+            if name in item_dict.items:
                 continue
-            conf = len(item_dict.dict)
-            item_dict.add(Item(self.__searched_package__, name,
-                          self.name, desc[:-1] if len(desc) > 1 else None, conf_addend=conf))
+            item_dict.add(self.name, name,
+                          desc[:-1] if len(desc) > 1 else None)
         return item_dict
 
     def update_dekstop_db(self):
