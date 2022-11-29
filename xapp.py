@@ -14,6 +14,7 @@ SUB_COMMANDS = (
     'update',
     'list',
     'search',
+    'dummy'
 )
 
 MANAGERS: dict[str, PackageManager] = FrozenDict({
@@ -39,6 +40,8 @@ class XApp:
                             help='use async search, use ctrl+c to stop the search')
         parser.add_argument('-i', '--interactive', action='store_true',
                             help='use interactive install')
+        parser.add_argument('-g', '--garbage-collector', action='store_true',
+                            help='run garbage collector at the end of the transaction')
         parser.add_argument('-u', '--user-installed', action='store_true',
                             help='only list user installed packages')
         parser.add_argument('-m', '--managers', action='store',
@@ -81,6 +84,12 @@ class XApp:
             print(
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} removing...', file=stderr)
             MANAGERS[manager].remove(packages)
+
+    def run_gc(self):
+        for manager in self.get_managers():
+            print(
+                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} running garbage collector...', file=stderr)
+            MANAGERS[manager].run_gc()
 
     def update(self, packages: list[str] | None):
         if packages != None and len(packages) == 0:
@@ -200,6 +209,10 @@ class XApp:
                 self.list_packages(self.args.packages)
             case ['search']:
                 self.search(self.args.packages)
+
+        if self.args.garbage_collector:
+            self.run_gc()
+
         sudoloop(False)
 
 
