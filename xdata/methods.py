@@ -26,7 +26,6 @@ def error(text: str, type=DEFAULT, code=ERROR):
 
 
 run_sudo_loop = False
-sudo_loop_thread: Thread | None = None
 
 
 def _sudo_loop():
@@ -38,12 +37,15 @@ def _sudo_loop():
             Popen(['sudo', 'echo', '""'], stdout=PIPE, stderr=PIPE)
 
 
+sudo_loop_thread = Thread(target=_sudo_loop)
+
+
 def sudoloop(run=True):
     global run_sudo_loop
     global sudo_loop_thread
 
-    def run_thread():
-        global run_sudo_loop
+    run_sudo_loop = run
+    if run and not sudo_loop_thread.is_alive():
         _, err = Popen(['sudo', 'echo', '""'], stdout=PIPE,
                        stderr=PIPE).communicate()
 
@@ -54,13 +56,7 @@ def sudoloop(run=True):
         sudo_loop_thread = Thread(target=_sudo_loop)
         sudo_loop_thread.start()
         return True
-
-    run_sudo_loop = run
-    if sudo_loop_thread == None:
-        return run_thread()
-    else:
-        if not run:
-            sudo_loop_thread.join()
-        elif not sudo_loop_thread.is_alive():
-            return run_thread()
-    return True
+    elif not run and sudo_loop_thread.is_alive():
+        sudo_loop_thread.join()
+        return True
+    return False
