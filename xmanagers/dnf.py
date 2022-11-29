@@ -48,7 +48,7 @@ class dnf(PackageManager):
         self.__execute__(['sudo', 'dnf', 'autoremove', '-y'], False)
         self.join()
 
-    def list_packages(self, user_installed: bool):
+    def list_packages(self, user_installed: bool, packages: list[str] | None = None):
         args = ['dnf', 'repoquery', '--qf', r'%{name}']
         if user_installed:
             args.append('--userinstalled')

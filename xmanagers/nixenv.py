@@ -47,7 +47,7 @@ class nixenv(PackageManager):
             ['nix-collect-garbage', '--delete-older-than', '30d'], False)
         self.join()
 
-    def list_packages(self, user_installed: bool):
+    def list_packages(self, user_installed: bool, packages: list[str] | None = None):
         args = ['nix-env', '-q']
         self.__execute__(args, False)
         self.join()

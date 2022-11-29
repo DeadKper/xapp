@@ -49,7 +49,7 @@ class flatpak(PackageManager):
         self.__execute__(['flatpak', 'uninstall', '--unused'], False)
         self.join()
 
-    def list_packages(self, user_installed: bool):
+    def list_packages(self, user_installed: bool, packages: list[str] | None = None):
         args = ['flatpak', 'list']
         self.__execute__(args, False)
         self.join()
