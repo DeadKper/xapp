@@ -69,7 +69,7 @@ class XApp:
     def install(self, packages: list[str] | ItemDict):
         self.check_args(packages)
 
-        for manager in self.get_managers(self.args.interactive and self.args.async_search):
+        for manager in self.get_managers():
             print(
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} installing...', file=stderr)
             MANAGERS[manager].install(packages)
@@ -112,14 +112,16 @@ class XApp:
 
     def search(self, packages: list[str], dict: ItemDict | None = None) -> ItemDict | None:
         self.check_args(packages)
+        managers = self.get_managers(
+            self.args.interactive and self.args.async_search)
 
         if not self.actioned:
-            for manager in self.get_managers():
+            for manager in managers:
                 MANAGERS[manager].search(packages)
             self.actioned = True
 
         aux: ItemDict
-        for manager in self.get_managers():
+        for manager in managers:
             if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
                 continue
             self.joined.append(manager)
