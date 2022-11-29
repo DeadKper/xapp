@@ -17,6 +17,7 @@ class nixenv(PackageManager):
         self.join()
         if len(self.__result__[1]) > 0:
             return False
+        self.update_dekstop_db()
         return True
 
     def remove(self, packages: list[str] | ItemDict, fail=False):
@@ -30,6 +31,7 @@ class nixenv(PackageManager):
         self.join()
         if len(self.__result__[1]) > 0:
             return False
+        self.update_dekstop_db()
         return True
 
     def update(self, packages: list[str] | None = None, fail=False):
@@ -75,7 +77,8 @@ class nixenv(PackageManager):
         return item_dict
 
     def update_dekstop_db(self):
-        self.__execute__(['rsync', '-prLK', '--chmod=u+rwx', f'{self.home}/.nix-profile/share/',
-                         f'{self.home}/.local/share/nix-env/share/', '--delete-after'], True, just_run=True)
+        self.__execute__(['rsync', '-prLK', '--chmod=u+rwx', '--include', 'share', '--include',
+                          'share/applications/***', '--exclude', '*', f'{self.home}/.nix-profile/',
+                          f'{self.home}/.local/share/nix-env/', '--delete-before'], False, False, just_run=True)
         self.__execute__(['update-desktop-database',
-                         f'{self.home}/.local/share/nix-env/share/'], False, False, True)
+                         f'{self.home}/.local/share/nix-env/share/applications'], False, False, True)

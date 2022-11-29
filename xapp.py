@@ -60,8 +60,8 @@ class XApp:
         if managers == None:
             managers = ['dnf', 'flatpak']
 
-        if include_slow:
-            managers.insert(1, 'nix-env')
+            if include_slow:
+                managers.insert(1, 'nix-env')
         return managers
 
     def check_args(self, args):
