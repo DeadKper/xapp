@@ -4,7 +4,7 @@ from xdata import error, DEFAULT, ERROR, WARNING, Color, sudoloop
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
 from time import sleep
-from sys import argv
+from sys import argv, stderr
 
 VERSION = '1.0-beta'
 
@@ -51,10 +51,15 @@ class XApp:
 
         self.actioned = False
         self.joined: list[str] = []
-        if self.args.managers == None:
-            self.args.managers = ['dnf', 'flatpak']
-            if self.args.interactive and self.args.async_search:
-                self.args.managers.insert(1, 'nix-env')
+
+    def get_managers(self, include_slow: bool = True):
+        managers: list[str] = self.args.managers
+        if managers == None:
+            managers = ['dnf', 'flatpak']
+
+        if include_slow:
+            managers.insert(1, 'nix-env')
+        return managers
 
     def check_args(self, args):
         if len(args) > 0:
@@ -64,20 +69,26 @@ class XApp:
     def install(self, packages: list[str] | ItemDict):
         self.check_args(packages)
 
-        for manager in self.args.managers:
+        for manager in self.get_managers(self.args.interactive and self.args.async_search):
+            print(
+                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} installing...', file=stderr)
             MANAGERS[manager].install(packages)
 
     def remove(self, packages: list[str] | ItemDict):
         self.check_args(packages)
 
-        for manager in self.args.managers:
+        for manager in self.get_managers():
+            print(
+                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} removing...', file=stderr)
             MANAGERS[manager].remove(packages)
 
     def update(self, packages: list[str] | None):
         if packages != None and len(packages) == 0:
             packages = None
 
-        for manager in self.args.managers:
+        for manager in self.get_managers():
+            print(
+                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} updating...', file=stderr)
             MANAGERS[manager].update(packages)
 
     def list_packages(self, packages: list[str] | None, dict: ItemDict | None = None) -> ItemDict | None:
@@ -88,7 +99,9 @@ class XApp:
             packages = None
 
         aux: ItemDict
-        for manager in self.args.managers:
+        for manager in self.get_managers():
+            print(
+                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} listing:', file=stderr)
             aux = MANAGERS[manager].list_packages(
                 self.args.user_installed, packages)
             if dict == None:
@@ -101,12 +114,12 @@ class XApp:
         self.check_args(packages)
 
         if not self.actioned:
-            for manager in self.args.managers:
+            for manager in self.get_managers():
                 MANAGERS[manager].search(packages)
             self.actioned = True
 
         aux: ItemDict
-        for manager in self.args.managers:
+        for manager in self.get_managers():
             if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
                 continue
             self.joined.append(manager)
@@ -118,8 +131,10 @@ class XApp:
 
         return dict
 
-    def interactive(self, dict_func: Callable[[list[str], ItemDict | None], ItemDict | None], run_func: Callable[[list[str] | ItemDict], None], package_list: list[str], managers: list[str]):
+    def interactive(self, dict_func: Callable[[list[str], ItemDict | None], ItemDict | None], run_func: Callable[[list[str] | ItemDict], None]):
         aux: ItemDict | None = None
+        package_list: list[str] = self.args.packages
+        managers: list[str] = self.get_managers()
         if self.args.async_search:
             print(f'{Color.YELLOW}Waiting{Color.END} for a response ...')
             sleep(1)
@@ -169,14 +184,12 @@ class XApp:
         match self.args.command:
             case ['install']:
                 if self.args.interactive:
-                    self.interactive(self.search, self.install,
-                                     self.args.packages, self.args.managers)
+                    self.interactive(self.search, self.install)
                 else:
                     self.install(self.args.packages)
             case ['remove']:
                 # if self.args.interactive:
-                #     self.interactive(self.list_packages, self.remove,
-                #                      self.args.packages, self.args.managers)
+                #     self.interactive(self.list_packages, self.remove)
                 # else:
                 self.remove(self.args.packages)
             case ['update']:
