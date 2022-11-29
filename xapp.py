@@ -1,6 +1,6 @@
 from xdata import FrozenDict, ItemDict, PackageManager
 from xmanagers import dnf, flatpak
-from xdata import error, DEFAULT, ERROR, WARNING, Color
+from xdata import error, DEFAULT, ERROR, WARNING, Color, sudoloop
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
 from time import sleep
@@ -189,6 +189,7 @@ class XApp:
                 self.list_packages(self.args.packages)
             case ['search']:
                 self.search(self.args.packages)
+        sudoloop(False)
 
 
 if __name__ == '__main__':

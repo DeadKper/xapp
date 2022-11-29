@@ -42,15 +42,18 @@ def sudoloop(run=True):
     global run_sudo_loop
     global sudo_loop_thread
 
-    _, err = Popen(['sudo', 'echo', '""'], stdout=PIPE,
-                   stderr=PIPE).communicate()
-
-    if len(err.decode()) > 0:
-        run_sudo_loop = False
-        return False
-
     run_sudo_loop = run
-    if run and not sudo_loop_thread.is_alive():
+    if not run:
+        sudo_loop_thread.join()
+    elif not sudo_loop_thread.is_alive():
+        _, err = Popen(['sudo', 'echo', '""'], stdout=PIPE,
+                       stderr=PIPE).communicate()
+
+        if len(err.decode()) > 0:
+            run_sudo_loop = False
+            return False
+
         sudo_loop_thread = Thread(target=_sudo_loop)
         sudo_loop_thread.run()
         return True
+    return True
