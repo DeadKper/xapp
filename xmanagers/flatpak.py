@@ -65,7 +65,7 @@ class flatpak(PackageManager):
         if item_dict == None:
             item_dict = ItemDict(self.__searched_package__)
 
-        result, error = self.response(True)
+        result, _ = self.response(True)
         for line in result.splitlines(False):
             result = split(r'\t+', line)
             if len(result) != 3:
