@@ -44,9 +44,6 @@ def sudoloop(run=True):
     global run_sudo_loop
     global sudo_loop_thread
 
-    if run and sudo_loop_thread.is_alive():
-        return True
-
     run_sudo_loop = run
     if run and not sudo_loop_thread.is_alive():
         _, err = Popen(['sudo', 'echo', '""'], stdout=PIPE,
