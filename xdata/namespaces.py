@@ -8,7 +8,7 @@ class XNamespace(SimpleNamespace):
     garbage_collector: bool
     user_installed: bool
     command: list[str]
-    managers: list[str]
+    managers: list[str] | None
     packages: list[str]
     dnf: bool
     flatpak: bool

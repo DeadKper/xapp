@@ -57,14 +57,14 @@ class XApp:
         for manager in MANAGERS:
             if self.args.__dict__[manager.replace('-', '_')]:
                 managers.append(manager)
-        if len(managers) > 0:
-            self.args.managers = managers
+
+        self.args.managers = managers if len(managers) > 0 else None
 
         self.actioned = False
         self.joined: list[str] = []
 
     def get_managers(self, include_slow: bool = True):
-        managers: list[str] = self.args.managers
+        managers: list[str] | None = self.args.managers
         if managers == None:
             managers = ['dnf', 'flatpak']
 
