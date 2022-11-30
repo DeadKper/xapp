@@ -3,7 +3,7 @@ from xdata import Color
 from sys import stderr
 from subprocess import Popen, PIPE
 from threading import Thread
-from time import sleep
+from time import sleep, time
 
 DEFAULT = 0
 ERROR = 1
@@ -30,11 +30,14 @@ run_sudo_loop = False
 
 def _sudo_loop():
     count = 0
+    start = time()
     while run_sudo_loop:
+        loop = time()
+        if loop - start > 30:
+            start = loop
+            Popen(['sudo', '--validate'], stdout=PIPE, stderr=PIPE)
         sleep(1)
         count += 1
-        if count == 30:
-            Popen(['sudo', 'echo', '""'], stdout=PIPE, stderr=PIPE)
 
 
 sudo_loop_thread = Thread(target=_sudo_loop)
@@ -46,7 +49,7 @@ def sudoloop(run=True):
 
     run_sudo_loop = run
     if run and not sudo_loop_thread.is_alive():
-        _, err = Popen(['sudo', 'echo', '""'], stdout=PIPE,
+        _, err = Popen(['sudo', '-i', 'echo'], stdout=PIPE,
                        stderr=PIPE).communicate()
 
         if len(err.decode()) > 0:
