@@ -29,7 +29,7 @@ class XApp:
         parser = Parser(prog='xapp', allow_abbrev=True,
                         description='a simple package manager wrapper',
                         usage='xapp [options] command [packages ...], \'xapp -h\' for full help',
-                        epilog='use \'--\' to stop a multi-argument option from continuing to parse arguments')
+                        epilog='if no manager is enable, all will be used; nix-env won\'t be used in search unless specified or flags -i and -a are present')
         # parser.add_argument('-c', '--cache', action='store_true',
         #                     help='clean and build package cache')
         parser.add_argument('-d', '--database', action='store_true',
@@ -44,13 +44,21 @@ class XApp:
                             help='run garbage collector at the end of the transaction')
         parser.add_argument('-u', '--user-installed', action='store_true',
                             help='only list user installed packages')
-        parser.add_argument('-m', '--managers', action='store',
-                            help='package managers to enabled', choices=MANAGERS.keys(), nargs='+')
+        for manager in MANAGERS:
+            parser.add_argument(f'--{manager}', action='store_true',
+                                help=f'enable {manager}')
         parser.add_argument('command', nargs=1, choices=SUB_COMMANDS,
                             help='command to execute')
         parser.add_argument('packages', nargs='*',
                             help='packages to install, remove, etc...')
         self.args = parser.parse_args(args=args, namespace=XNamespace)
+
+        managers: list[str] = []
+        for manager in MANAGERS:
+            if self.args.__dict__[manager.replace('-', '_')]:
+                managers.append(manager)
+        if len(managers) > 0:
+            self.args.managers = managers
 
         self.actioned = False
         self.joined: list[str] = []

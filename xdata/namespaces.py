@@ -10,3 +10,6 @@ class XNamespace(SimpleNamespace):
     command: list[str]
     managers: list[str]
     packages: list[str]
+    dnf: bool
+    flatpak: bool
+    nix_env: bool
