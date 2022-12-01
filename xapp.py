@@ -1,6 +1,6 @@
 from xdata import FrozenDict, ItemDict, PackageManager, XNamespace
 from xmanagers import dnf, flatpak, nixenv
-from xdata.Static import CONFIG, DEFAULT, ERROR, WARNING, error, Color, sudoloop, get_config
+from xdata.static import CONFIG, DEFAULT, ERROR, WARNING, Color, sudoloop, get_config, error
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
 from time import sleep

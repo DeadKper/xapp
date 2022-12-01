@@ -1,7 +1,7 @@
 from typing import Any
 from re import sub as sed
 from re import IGNORECASE
-from xdata.Static import item_confidence, Color
+from xdata.static import item_confidence, Color
 from xdata import Item, JSON
 from time import time
 
