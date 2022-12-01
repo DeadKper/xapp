@@ -4,10 +4,12 @@ from sys import stderr
 from subprocess import Popen, PIPE
 from threading import Thread
 from time import sleep, time
+from os import environ
+from os.path import exists
+from configparser import ConfigParser
+from xdata.namespaces import ConfigNamespace
+from xdata.Vars import DEFAULT, ERROR, WARNING
 
-DEFAULT = 0
-ERROR = 1
-WARNING = 2
 SEPARATOR = '=-|-='
 
 
@@ -104,3 +106,37 @@ def item_confidence(query_list: list[str], name: str, id: str | None = None):
             result = id_result
 
     return result
+
+
+def make_default_config(file: str):
+    if exists(file):
+        return
+
+    config = ConfigParser()
+
+    config.add_section('general')
+    config.set('general', '# interactive', 'True')
+    config.set('general', '# garbage_collector', 'True')
+    config.set('general', 'managers', 'dnf,flatpak')
+    config.set('general', 'async_managers', 'nix-env')
+    config.add_section('install')
+    config.set('install', '# interactive', 'True')
+    config.add_section('remove')
+    config.set('remove', '# interactive', 'True')
+    config.add_section('list')
+    config.set('list', '# user_installed', 'True')
+    config.add_section('search')
+    config.set('search', '# async_search', 'True')
+
+    with open(file, 'w') as config_file:
+        config.write(config_file)
+
+    return config
+
+
+def get_config(file: str):
+    config = make_default_config(file)
+    if config == None:
+        config = ConfigParser()
+        config.read(file)
+    return ConfigNamespace(**config.__dict__['_sections'])

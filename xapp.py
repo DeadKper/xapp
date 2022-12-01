@@ -1,6 +1,7 @@
-from xdata import FrozenDict, ItemDict, PackageManager, XNamespace
+from xdata import FrozenDict, ItemDict, PackageManager, XNamespace, ConfigNamespace
 from xmanagers import dnf, flatpak, nixenv
-from xdata import error, DEFAULT, ERROR, WARNING, Color, sudoloop
+from xdata import error, Color, sudoloop, get_config
+from xdata.Vars import CONFIG, DEFAULT, ERROR, WARNING
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
 from time import sleep
@@ -58,19 +59,59 @@ class XApp:
             if self.args.__dict__[manager.replace('-', '_')]:
                 managers.append(manager)
 
-        self.args.managers = managers if len(managers) > 0 else None
+        self.managers = managers if len(managers) > 0 else None
+        self.async_managers: list[str] | None = None
+
+        self.set_configs()
 
         self.actioned = False
         self.joined: list[str] = []
 
-    def get_managers(self, include_slow: bool = True):
-        managers: list[str] | None = self.args.managers
-        if managers == None:
-            managers = ['dnf', 'flatpak']
+    def set_configs(self):
+        configs = get_config(f'{CONFIG}/xapp')
 
-            if include_slow:
-                managers.insert(1, 'nix-env')
-        return managers
+        match self.args.command:
+            case ['install']:
+                if configs.install.interactive != None and not self.args.interactive:
+                    self.args.interactive = configs.install.interactive
+            case ['remove']:
+                if configs.remove.interactive != None and not self.args.interactive:
+                    self.args.interactive = configs.remove.interactive
+            case ['list']:
+                if configs.list.user_installed != None and not self.args.user_installed:
+                    self.args.user_installed = configs.list.user_installed
+
+        if configs.search.async_search != None and not self.args.async_search:
+            self.args.async_search = configs.search.async_search
+
+        if configs.general.async_managers and not self.async_managers:
+            self.async_managers = configs.general.async_managers
+        if configs.general.managers and not self.managers:
+            self.managers = configs.general.managers
+        if configs.general.interactive != None and not self.args.interactive:
+            self.args.interactive = configs.general.interactive
+        if configs.general.garbage_collector != None and not self.args.garbage_collector:
+            self.args.garbage_collector = configs.general.garbage_collector
+
+    def get_managers(self, include_slow: bool = True):
+        managers = self.managers
+
+        if managers == None:
+            managers = self.managers
+
+            if not managers:
+                managers = ['dnf', 'flatpak']
+
+            self.managers = managers
+
+        async_managers = self.async_managers
+        if async_managers == None:
+            if not async_managers:
+                async_managers = ['nix-env']
+            self.async_managers = async_managers
+
+        return [man for man in (
+            managers + async_managers if include_slow else managers) if man in MANAGERS]
 
     def check_args(self, args):
         if len(args) > 0:

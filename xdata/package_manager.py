@@ -1,6 +1,7 @@
 from subprocess import Popen, PIPE
 from threading import Thread
-from xdata import ItemDict, EMPTY_ITEM_DICT, sudoloop, error, ERROR
+from xdata import ItemDict, EMPTY_ITEM_DICT, sudoloop, error
+from xdata.Vars import ERROR
 from pathlib import Path
 
 
