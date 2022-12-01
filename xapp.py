@@ -54,6 +54,7 @@ class XApp:
                             help='packages to install, remove, etc...')
         self.args = parser.parse_args(args=args, namespace=XNamespace)
 
+        self.managers: list[str] | None = None
         self.async_managers: list[str] | None = None
         managers: list[str] = []
         for manager in MANAGERS:
@@ -86,9 +87,9 @@ class XApp:
         if configs.search.async_search != None and not self.args.async_search:
             self.args.async_search = configs.search.async_search
 
-        if configs.general.async_managers and not self.async_managers:
+        if configs.general.async_managers and self.async_managers == None:
             self.async_managers = configs.general.async_managers
-        if configs.general.managers and not self.managers:
+        if configs.general.managers and self.managers == None:
             self.managers = configs.general.managers
         if configs.general.interactive != None and not self.args.interactive:
             self.args.interactive = configs.general.interactive
@@ -211,10 +212,9 @@ class XApp:
         manager_dict = {manager[:1]: manager for manager in managers}
         if self.args.async_search:
             print(f'{Color.YELLOW}Waiting{Color.END} for a response ...')
-            sleep(1)
             while aux == None:
-                aux = dict_func(package_list, aux)
                 sleep(1)
+                aux = dict_func(package_list, aux)
         else:
             aux = dict_func(package_list, aux)
         item_dict: ItemDict = aux  # type: ignore
@@ -233,6 +233,9 @@ class XApp:
                           item_dict.to_string(managers_order=managers))
             except KeyboardInterrupt:
                 pass
+
+        if len(item_dict) == 0:
+            error('No packages was found!', type=ERROR, code=DEFAULT)
 
         prefix = f' {Color.BLUE}::{Color.END} '
         message = f'\n{prefix}Enter packages to install (eg: 1 2 3 5, 1-3 5) [0 to exit]'
