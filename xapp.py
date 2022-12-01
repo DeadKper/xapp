@@ -1,5 +1,5 @@
-from xdata import FrozenDict, ItemDict, PackageManager, XNamespace
-from xmanagers import dnf, flatpak, nixenv
+from xdata import ItemDict, XNamespace
+from xdata.managers import MANAGERS
 from xdata.static import CONFIG, DEFAULT, ERROR, WARNING, Color, sudoloop, get_config, error
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
@@ -16,12 +16,6 @@ SUB_COMMANDS = (
     'search',
     'dummy'
 )
-
-MANAGERS: dict[str, PackageManager] = FrozenDict({
-    'dnf': dnf(),
-    'flatpak': flatpak(),
-    'nix-env': nixenv(),
-})
 
 
 class XApp:
