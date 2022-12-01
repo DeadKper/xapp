@@ -54,13 +54,15 @@ class XApp:
                             help='packages to install, remove, etc...')
         self.args = parser.parse_args(args=args, namespace=XNamespace)
 
+        self.async_managers: list[str] | None = None
         managers: list[str] = []
         for manager in MANAGERS:
             if self.args.__dict__[manager.replace('-', '_')]:
                 managers.append(manager)
 
-        self.managers = managers if len(managers) > 0 else None
-        self.async_managers: list[str] | None = None
+        if len(managers) > 0:
+            self.managers = managers if len(managers) > 0 else None
+            self.async_managers = []
 
         self.set_configs()
 
