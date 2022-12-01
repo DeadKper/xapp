@@ -9,6 +9,7 @@ class ItemDict(JSON):
     def __init__(self, query: list[str], items: dict[str, dict] = {}, sorted=False, keys_set=False, keys: list[str] = [], expiration: int | None = None) -> None:
         self.query = query
         self.items: dict[str, Item] = {}
+        self.managers: list[str] = []
         self.sorted = sorted
         self.keys_set = keys_set
         self.keys = keys
@@ -45,6 +46,10 @@ class ItemDict(JSON):
         self.add_item(item.name.lower(), item)  # type: ignore
 
     def add_item(self, key: str, item: Item):
+        if len(self.managers) < 3:
+            for manager in item.keys:
+                if manager not in self.managers:
+                    self.managers.append(manager)
         if key in self.items:
             self.__merge_items__(key, item)
         else:

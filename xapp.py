@@ -265,9 +265,13 @@ class XApp:
                 if has_manager:
                     for item in items:
                         item.keys = [manager_dict[char]]
+                else:
+                    for item in items:
+                        item.keys = [item.keys[0]]
 
                 package_dict.extend(items)
 
+            self.managers = package_dict.managers
             run_func(package_dict)
         except KeyboardInterrupt:
             pass
