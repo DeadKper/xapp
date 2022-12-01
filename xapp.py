@@ -210,31 +210,30 @@ class XApp:
         package_list: list[str] = self.args.packages
         managers: list[str] = self.get_managers()
         manager_dict = {manager[:1]: manager for manager in managers}
-        if self.args.async_search:
-            print(f'{Color.YELLOW}Waiting{Color.END} for a response ...')
-            while aux == None:
-                sleep(1)
-                aux = dict_func(package_list, aux)
-        else:
-            aux = dict_func(package_list, aux)
-        item_dict: ItemDict = aux  # type: ignore
-        print(item_dict.to_string(managers_order=managers))
+        item_dict: ItemDict | None = None
+
         if self.args.async_search:
             try:
+                print(f'{Color.YELLOW}Waiting{Color.END} for a response ...')
                 aux = None
                 while len(self.joined) < len(managers):
                     sleep(0.5)
                     aux = dict_func(package_list, None)
-                    if aux == None or len(aux) == 0:
+                    if aux == None:
+                        continue
+                    if item_dict == None:
+                        item_dict = aux
+                    print(f' {"":{"-"}<15} Response found! {"":{"-"}<15}')
+                    if len(aux) == 0:
                         continue
                     item_dict.extend(aux.items)
-                    aux = None
-                    print('\n' * 30 +
-                          item_dict.to_string(managers_order=managers))
+                    print(item_dict.to_string(managers_order=managers))
             except KeyboardInterrupt:
                 pass
+        else:
+            item_dict = dict_func(package_list, None)
 
-        if len(item_dict) == 0:
+        if not item_dict or len(item_dict) == 0:
             error('No packages was found!', type=ERROR, code=DEFAULT)
 
         prefix = f' {Color.BLUE}::{Color.END} '
