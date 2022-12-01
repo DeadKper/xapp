@@ -1,7 +1,6 @@
-from xdata import FrozenDict, ItemDict, PackageManager, XNamespace, ConfigNamespace
+from xdata import FrozenDict, ItemDict, PackageManager, XNamespace
 from xmanagers import dnf, flatpak, nixenv
-from xdata import error, Color, sudoloop, get_config
-from xdata.Vars import CONFIG, DEFAULT, ERROR, WARNING
+from xdata.Static import CONFIG, DEFAULT, ERROR, WARNING, error, Color, sudoloop, get_config
 from typing import Sequence, Callable
 from argparse import ArgumentParser as Parser
 from time import sleep
@@ -234,7 +233,7 @@ class XApp:
             item_dict = dict_func(package_list, None)
 
         if not item_dict or len(item_dict) == 0:
-            error('No packages was found!', type=ERROR, code=DEFAULT)
+            error('No packages were found!', type=ERROR, code=DEFAULT)
 
         prefix = f' {Color.BLUE}::{Color.END} '
         message = f'\n{prefix}Enter packages to install (eg: 1 2 3 5, 1-3 5) [0 to exit]'

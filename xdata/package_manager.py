@@ -1,7 +1,7 @@
 from subprocess import Popen, PIPE
 from threading import Thread
-from xdata import ItemDict, EMPTY_ITEM_DICT, sudoloop, error
-from xdata.Vars import ERROR
+from xdata.Static import sudoloop, error
+from xdata import ItemDict, EMPTY_ITEM_DICT
 from pathlib import Path
 
 
@@ -60,7 +60,7 @@ class PackageManager:
     def __execute__(self, args: list[str], pipe: bool, pipe_error=True, just_run=False):
         if args[0] == 'sudo':
             if not sudoloop():
-                error(f'{self.name!r} needs sudo to work!', type=ERROR)
+                error(f'{self.name!r} needs sudo to work!', type=1)
 
         if just_run:
             Popen(args=args,
