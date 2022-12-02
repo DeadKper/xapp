@@ -123,13 +123,14 @@ def make_default_config(file: str):
     config.set('general', 'async_managers', 'nix-env')
     config.add_section('install')
     config.set('install', '# interactive', 'True')
+    config.set('install', 'async_search', 'True')
     config.add_section('remove')
     config.add_section('list')
     config.set('list', '# user_installed', 'True')
     config.add_section('search')
     config.set('search', '# async_search', 'True')
     config.add_section('update')
-    config.set('general', '# garbage_collector', 'True')
+    config.set('general', 'garbage_collector', 'True')
 
     with open(file, 'w') as config_file:
         config.write(config_file)
