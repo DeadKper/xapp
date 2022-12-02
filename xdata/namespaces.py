@@ -12,8 +12,13 @@ class ArgsNamespace(SimpleNamespace):
     managers: list[str]
     packages: list[str]
 
-    def __init__(self, dnf: bool, flatpak: bool, nix_env: bool, command: str | None = None, packages: list[str] | None = None, **kwargs: Any) -> None:
+    def __init__(self, database=False, garbage_collector=False, async_search=False, interactive=False, user_installed=False, dnf=False, flatpak=False, nix_env=False, command: str | None = None, packages: list[str] | None = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
+        self.database = database
+        self.garbage_collector = garbage_collector
+        self.async_search = async_search
+        self.interactive = interactive
+        self.user_installed = user_installed
         self.command = command if command != None else ''
         self.packages = packages if packages != None else []
         self.managers = []
