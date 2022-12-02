@@ -170,6 +170,7 @@ class XApp:
             if dict == None:
                 dict = aux
             else:
+                dict.add_manager(aux.managers)
                 dict.extend(aux.items)
         return dict
 
@@ -192,6 +193,7 @@ class XApp:
             if dict == None:
                 dict = aux
             else:
+                dict.add_manager(aux.managers)
                 dict.extend(aux.items)
 
         if dict and not self.args.async_search:
@@ -220,6 +222,7 @@ class XApp:
                     print(f' {"":{"-"}<15} Response found! {"":{"-"}<15}')
                     if len(aux) == 0:
                         continue
+                    item_dict.add_manager(aux.managers)
                     item_dict.extend(aux.items)
                     print(item_dict.to_string(managers_order=managers))
             except KeyboardInterrupt:
@@ -262,6 +265,7 @@ class XApp:
                     for item in items:
                         item.keys = [item.keys[0]]
 
+                package_dict.add_manager(items[0].keys[0])
                 package_dict.extend(items)
 
             self.managers = package_dict.managers

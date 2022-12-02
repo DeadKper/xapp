@@ -1,7 +1,6 @@
 from typing import Any
 from re import sub as sed
 from re import IGNORECASE
-from xdata.managers import COUNT
 from xdata.static import item_confidence, Color
 from xdata.items import Item
 from xdata import JSON
@@ -9,14 +8,13 @@ from time import time
 
 
 class Dict(JSON):
-    def __init__(self, query: list[str], manager_count: int = 1, items: dict[str, dict] = {}, sorted=False, keys_set=False, keys: list[str] = [], expiration: int | None = None, *args, **kwargs) -> None:
+    def __init__(self, query: list[str], items: dict[str, dict] = {}, sorted=False, keys_set=False, keys: list[str] = [], expiration: int | None = None, *args, **kwargs) -> None:
         self.expiration = time() + 21600 if not expiration else expiration
         if self.expiration < time():
             self.expired = True
             return
         self.expired = False
         self.query = query
-        self.manager_count = manager_count
         self.items: dict[str, Item] = {}
         self.managers: list[str] = []
         self.sorted = sorted
@@ -53,11 +51,14 @@ class Dict(JSON):
         item.add(manager, name, description, id)
         self.add_item(item.name.lower(), item)  # type: ignore
 
+    def add_manager(self, managers: str | list[str]):
+        if isinstance(managers, str):
+            managers = [managers]
+        for manager in managers:
+            if managers not in self.managers:
+                self.managers.append(manager)
+
     def add_item(self, key: str, item: Item):
-        if len(self.managers) < COUNT:
-            for manager in item.keys:
-                if manager not in self.managers:
-                    self.managers.append(manager)
         if key in self.items:
             self.__merge_items__(key, item)
         else:
