@@ -179,6 +179,7 @@ class XApp:
                 package_dict.extend(items)
 
             self.args.managers = package_dict.managers
+            self.args.async_managers = []
             run_func(package_dict)
         except KeyboardInterrupt:
             pass
