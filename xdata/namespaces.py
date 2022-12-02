@@ -83,7 +83,7 @@ class ConfigNamespace(SimpleNamespace):
 class ArgsNamespace(SimpleNamespace):
     update_desktop_db: bool
     garbage_collector: bool
-    command: str
+    command: str | None
     managers: list[str]
     async_managers: list[str]
     packages: list[str]

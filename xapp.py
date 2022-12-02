@@ -189,20 +189,17 @@ class XApp:
             error('Invalid package was entered!', type=ERROR, code=ERROR)
 
     def run(self):
-        if not self.run_flags and len(self.args.command) == 0:
-            self.parser.print_help()
-            exit(0)
-
         match self.args.command:
+            case None:
+                if not self.run_flags:
+                    self.parser.print_help()
+                    exit(0)
             case 'install':
                 if self.args.interactive:
                     self.interactive(self.search, self.install)
                 else:
                     self.install(self.args.packages)
             case 'remove':
-                # if self.args.interactive:
-                #     self.interactive(self.list_packages, self.remove)
-                # else:
                 self.remove(self.args.packages)
             case 'update':
                 self.update(self.args.packages)
