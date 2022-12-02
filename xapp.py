@@ -178,7 +178,7 @@ class XApp:
                 package_dict.add_manager(items[0].keys[0])
                 package_dict.extend(items)
 
-            self.managers = package_dict.managers
+            self.args.managers = package_dict.managers
             run_func(package_dict)
         except KeyboardInterrupt:
             pass
