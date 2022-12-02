@@ -1,4 +1,5 @@
-from xdata import ManagerInfo, JSON
+from xdata import JSON
+from xdata.items import Info
 
 
 class Item(JSON):
@@ -6,9 +7,9 @@ class Item(JSON):
         self.confidence = confidence
         self.name = name
         self.description = description
-        self.managers: dict[str, ManagerInfo] = {}
+        self.managers: dict[str, Info] = {}
         for key, value in managers.items():
-            self.managers[key] = ManagerInfo(**value)
+            self.managers[key] = Info(**value)
         self.keys = list(self.managers.keys()) if _keys == None else _keys
 
     @property
@@ -32,9 +33,9 @@ class Item(JSON):
         self.description = description
 
     def add(self, manager: str, data: str, description: str | None = None, id: str | None = None):
-        self.add_manager(manager, ManagerInfo(data, description, id))
+        self.add_manager(manager, Info(data, description, id))
 
-    def add_manager(self, manager: str, info: ManagerInfo):
+    def add_manager(self, manager: str, info: Info):
         self.managers[manager] = info
         if not self.name:
             self.name = info.name
@@ -42,7 +43,7 @@ class Item(JSON):
             self.description = info.description
         self.keys.append(manager)
 
-    def extend(self, managers: dict[str, ManagerInfo]):
+    def extend(self, managers: dict[str, Info]):
         for key, value in managers.items():
             self.add_manager(key, value)
 

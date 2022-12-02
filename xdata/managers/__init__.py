@@ -1,4 +1,5 @@
-from xdata import PackageManager, FrozenDict
+from xdata import FrozenDict
+from xdata.managers.package_manager import PackageManager
 from xdata.managers.dnf import dnf
 from xdata.managers.flatpak import flatpak
 from xdata.managers.nixenv import nixenv
@@ -11,4 +12,4 @@ MANAGERS: dict[str, PackageManager] = FrozenDict({
     'nix-env': nixenv(),
 })
 
-__all__ = ['COUNT', 'MANAGERS', 'dnf', 'flatpak', 'nixenv']
+__all__ = ['COUNT', 'MANAGERS', 'PackageManager', 'dnf', 'flatpak', 'nixenv']

@@ -1,4 +1,5 @@
-from xdata import ItemDict, PackageManager
+from xdata.items import Dict
+from xdata.managers import PackageManager
 from re import split
 
 
@@ -6,9 +7,9 @@ class flatpak(PackageManager):
     def __init__(self) -> None:
         super().__init__('flatpak')
 
-    def install(self, packages: list[str] | ItemDict, fail=False):
+    def install(self, packages: list[str] | Dict, fail=False):
         args = ['flatpak', 'install']
-        if isinstance(packages, ItemDict):
+        if isinstance(packages, Dict):
             packages = packages.pop_manager(self.name)
             if len(packages) == 0:
                 return False
@@ -20,9 +21,9 @@ class flatpak(PackageManager):
             return False
         return True
 
-    def remove(self, packages: list[str] | ItemDict, fail=False):
+    def remove(self, packages: list[str] | Dict, fail=False):
         args = ['flatpak', 'remove']
-        if isinstance(packages, ItemDict):
+        if isinstance(packages, Dict):
             packages = packages.pop_manager(self.name)
             if len(packages) == 0:
                 return False
@@ -61,9 +62,9 @@ class flatpak(PackageManager):
         args.extend(package)
         self.__execute__(args, True)
 
-    def search_response(self, item_dict: ItemDict | None = None):
+    def search_response(self, item_dict: Dict | None = None):
         if item_dict == None:
-            item_dict = ItemDict(self.__searched_package__)
+            item_dict = Dict(self.__searched_package__)
 
         result, _ = self.response(True)
         for line in result.splitlines(False):

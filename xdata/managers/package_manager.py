@@ -1,7 +1,7 @@
 from subprocess import Popen, PIPE
 from threading import Thread
 from xdata.static import sudoloop, error
-from xdata import ItemDict, EMPTY_ITEM_DICT
+from xdata.items import Dict, EMPTY_DICT
 from pathlib import Path
 
 
@@ -15,10 +15,10 @@ class PackageManager:
         self.home = Path.home()
         self.has_desktopdb = has_desktopdb
 
-    def install(self, packages: list[str] | ItemDict, fail=False) -> bool:
+    def install(self, packages: list[str] | Dict, fail=False) -> bool:
         return False
 
-    def remove(self, packages: list[str] | ItemDict, fail=False) -> bool:
+    def remove(self, packages: list[str] | Dict, fail=False) -> bool:
         return False
 
     def update(self, packages: list[str] | None = None, fail=False) -> bool:
@@ -27,14 +27,14 @@ class PackageManager:
     def run_gc(self):
         pass
 
-    def list_packages(self, user_installed: bool, packages: list[str] | None = None) -> ItemDict:
-        return EMPTY_ITEM_DICT
+    def list_packages(self, user_installed: bool, packages: list[str] | None = None) -> Dict:
+        return EMPTY_DICT
 
     def search(self, packages: list[str]):
         pass
 
-    def search_response(self) -> ItemDict:
-        return EMPTY_ITEM_DICT
+    def search_response(self) -> Dict:
+        return EMPTY_DICT
 
     def update_dekstop_db(self):
         pass

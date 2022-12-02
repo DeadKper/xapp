@@ -1,20 +1,27 @@
 from typing import Any
 from re import sub as sed
 from re import IGNORECASE
+from xdata.managers import COUNT
 from xdata.static import item_confidence, Color
-from xdata import Item, JSON
+from xdata.items import Item
+from xdata import JSON
 from time import time
 
 
-class ItemDict(JSON):
-    def __init__(self, query: list[str], items: dict[str, dict] = {}, sorted=False, keys_set=False, keys: list[str] = [], expiration: int | None = None) -> None:
+class Dict(JSON):
+    def __init__(self, query: list[str], manager_count: int = 1, items: dict[str, dict] = {}, sorted=False, keys_set=False, keys: list[str] = [], expiration: int | None = None, *args, **kwargs) -> None:
+        self.expiration = time() + 21600 if not expiration else expiration
+        if self.expiration < time():
+            self.expired = True
+            return
+        self.expired = False
         self.query = query
+        self.manager_count = manager_count
         self.items: dict[str, Item] = {}
         self.managers: list[str] = []
         self.sorted = sorted
         self.keys_set = keys_set
         self.keys = keys
-        self.expiration = time() + 21600 if not expiration else expiration
         for key, value in items.items():
             self.items[key] = Item(**value)
 
@@ -47,7 +54,7 @@ class ItemDict(JSON):
         self.add_item(item.name.lower(), item)  # type: ignore
 
     def add_item(self, key: str, item: Item):
-        if len(self.managers) < 3:
+        if len(self.managers) < COUNT:
             for manager in item.keys:
                 if manager not in self.managers:
                     self.managers.append(manager)
@@ -141,6 +148,3 @@ class ItemDict(JSON):
         if not self.keys_set:
             self.__set_keys__()
         return len(self.keys)
-
-
-EMPTY_ITEM_DICT = ItemDict([])

@@ -1,4 +1,5 @@
-from xdata import ItemDict, XNamespace
+from xdata import XNamespace
+from xdata.items import Dict
 from xdata.managers import MANAGERS
 from xdata.static import CONFIG, DEFAULT, ERROR, WARNING, Color, sudoloop, get_config, error
 from typing import Sequence, Callable
@@ -114,7 +115,7 @@ class XApp:
             return
         error('No arguments given!', type=ERROR)
 
-    def install(self, packages: list[str] | ItemDict):
+    def install(self, packages: list[str] | Dict):
         self.check_args(packages)
 
         for manager in self.get_managers():
@@ -122,7 +123,7 @@ class XApp:
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} installing...', file=stderr)
             MANAGERS[manager].install(packages)
 
-    def remove(self, packages: list[str] | ItemDict):
+    def remove(self, packages: list[str] | Dict):
         self.check_args(packages)
 
         for manager in self.get_managers():
@@ -153,14 +154,14 @@ class XApp:
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} updating...', file=stderr)
             MANAGERS[manager].update(packages)
 
-    def list_packages(self, packages: list[str] | None, dict: ItemDict | None = None) -> ItemDict | None:
+    def list_packages(self, packages: list[str] | None, dict: Dict | None = None) -> Dict | None:
         if dict != None:
             return dict
 
         if packages != None and len(packages) == 0:
             packages = None
 
-        aux: ItemDict
+        aux: Dict
         for manager in self.get_managers():
             print(
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} listing:', file=stderr)
@@ -172,7 +173,7 @@ class XApp:
                 dict.extend(aux.items)
         return dict
 
-    def search(self, packages: list[str], dict: ItemDict | None = None) -> ItemDict | None:
+    def search(self, packages: list[str], dict: Dict | None = None) -> Dict | None:
         self.check_args(packages)
         managers = self.get_managers(
             self.args.interactive and self.args.async_search)
@@ -182,7 +183,7 @@ class XApp:
                 MANAGERS[manager].search(packages)
             self.actioned = True
 
-        aux: ItemDict
+        aux: Dict
         for manager in managers:
             if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
                 continue
@@ -198,12 +199,12 @@ class XApp:
 
         return dict
 
-    def interactive(self, dict_func: Callable[[list[str], ItemDict | None], ItemDict | None], run_func: Callable[[list[str] | ItemDict], None]):
-        aux: ItemDict | None = None
+    def interactive(self, dict_func: Callable[[list[str], Dict | None], Dict | None], run_func: Callable[[list[str] | Dict], None]):
+        aux: Dict | None = None
         package_list: list[str] = self.args.packages
         managers: list[str] = self.get_managers()
         manager_dict = {manager[:1]: manager for manager in managers}
-        item_dict: ItemDict | None = None
+        item_dict: Dict | None = None
 
         if self.args.async_search:
             try:
@@ -239,7 +240,7 @@ class XApp:
             error('Action cancelled!', type=WARNING, code=DEFAULT)
 
         try:
-            package_dict: ItemDict = ItemDict(package_list)
+            package_dict: Dict = Dict(package_list)
             for arg in packages.split(' '):
                 char = arg[-1:]
                 has_manager = char.isalpha()
