@@ -8,7 +8,7 @@ class nixenv(PackageManager):
         super().__init__('nix-env', True)
 
     def install(self, packages: list[str] | Dict, fail=False):
-        if not super()._run(['nix-env', '-f', '<nixpkgs>', '-iA', '-Q'],
+        if not super()._run(['nix-env', '-f', '<nixpkgs>', '-iA'],
                             args=packages,
                             pipe_err=fail):
             return False
@@ -16,7 +16,7 @@ class nixenv(PackageManager):
         return True
 
     def remove(self, packages: list[str] | Dict, fail=False):
-        if not super()._run(['nix-env', '-f', '<nixpkgs>', '-e', '-Q'],
+        if not super()._run(['nix-env', '-f', '<nixpkgs>', '-e'],
                             args=packages,
                             pipe_err=fail):
             return False
@@ -24,7 +24,7 @@ class nixenv(PackageManager):
         return True
 
     def update(self, packages: list[str] = [], fail=False):
-        return super()._run(['nix-env', '-f', '<nixpkgs>', '-uA', '-Q'],
+        return super()._run(['nix-env', '-f', '<nixpkgs>', '-uA'],
                             args=packages,
                             pipe_err=fail)
 
