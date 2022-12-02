@@ -56,7 +56,7 @@ class Dict(JSON):
         if isinstance(managers, str):
             managers = [managers]
         for manager in managers:
-            if managers not in self.managers:
+            if manager not in self.managers:
                 self.managers.append(manager)
 
     def add_item(self, key: str, item: Item):
