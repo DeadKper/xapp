@@ -5,6 +5,10 @@ DEFAULT = 0
 ERROR = 1
 WARNING = 2
 
+MANAGER_LIST = ['dnf', 'flatpak', 'nix-env']
+
+VERSION = '1.2-beta'
+
 HOME = Path.home()
 DATA = environ['XDG_DATA_HOME'] if len(
     environ['XDG_DATA_HOME']) > 0 else f'{HOME}/.local/share'

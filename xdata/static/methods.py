@@ -5,8 +5,10 @@ from threading import Thread
 from time import sleep, time
 from os.path import exists
 from configparser import ConfigParser
-from xdata.namespaces import ConfigNamespace
+from xdata.namespaces import ArgsNamespace, ConfigNamespace
+from typing import Sequence
 from xdata.static import *
+import argparse
 
 SEPARATOR = '=-|-='
 
@@ -140,3 +142,60 @@ def get_config(file: str):
         config = ConfigParser()
         config.read(file)
     return ConfigNamespace(**config.__dict__['_sections'])
+
+
+def parse_args(args: Sequence[str]):
+    base_parser = argparse.ArgumentParser(prog='xapp', allow_abbrev=True, add_help=False,
+                                          description='a simple package manager wrapper')
+    base_parser.add_argument('-v', '--version', action='version',
+                             version=f'%(prog)s v{VERSION}')
+    # base_parser.add_argument('-c', '--cache', action='store_true',
+    #                          help='clean and build package cache')
+    base_parser.add_argument('-d', '--database', action='store_true',
+                             help='update desktop dabase for all supported managers')
+    base_parser.add_argument('-g', '--garbage-collector', action='store_true',
+                             help='run garbage collector at the end of the transaction')
+
+    for manager in MANAGER_LIST:
+        base_parser.add_argument(f'--{manager}', action='store_true',
+                                 help=f'enable {manager}')
+
+    parser = argparse.ArgumentParser(parents=[base_parser], add_help=True)
+
+    subparser = parser.add_subparsers(dest="command", required=False)
+
+    # Install subparser
+    command = subparser.add_parser('install', parents=[base_parser],
+                                   help='install packages')
+    command.add_argument('-a', '--async-search', action='store_true',
+                         help='use async search on interactive mode, ctrl+c to stop the search')
+    command.add_argument('-i', '--interactive', action='store_true',
+                         help='use interactive install')
+    command.add_argument('packages', nargs='+',
+                         help='package/s to install')
+
+    # Remove subparser
+    command = subparser.add_parser('remove', parents=[base_parser],
+                                   help='remove installed packages')
+    command.add_argument('packages', nargs='+',
+                         help='package/s to remove')
+
+    # Update subparser
+    command = subparser.add_parser('update', parents=[base_parser],
+                                   help='update installed packages')
+    command.add_argument('packages', nargs='*',
+                         help='package/s to update (optional)')
+
+    # List subparser
+    command = subparser.add_parser('list', parents=[base_parser],
+                                   help='list installed packages')
+    command.add_argument('-u', '--user-installed', action='store_true',
+                         help='only list user installed packages')
+
+    # Search subparser
+    command = subparser.add_parser('search', parents=[base_parser],
+                                   help='search for packages to install')
+    command.add_argument('-a', '--async-search', action='store_true',
+                         help='use async search, ctrl+c to stop the search')
+
+    return parser, ArgsNamespace(**parser.parse_args(args=args).__dict__)

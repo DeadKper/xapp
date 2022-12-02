@@ -2,18 +2,33 @@ from types import SimpleNamespace
 from typing import Any
 
 
-class XNamespace(SimpleNamespace):
+class ArgsNamespace(SimpleNamespace):
     database: bool
+    garbage_collector: bool
     async_search: bool
     interactive: bool
-    garbage_collector: bool
     user_installed: bool
-    command: list[str]
-    managers: list[str] | None
+    command: str
+    managers: list[str]
     packages: list[str]
-    dnf: bool
-    flatpak: bool
-    nix_env: bool
+
+    def __init__(self, database=False, garbage_collector=False, async_search=False, interactive=False, user_installed=False, dnf=False, flatpak=False, nix_env=False, command: str | None = None, packages: list[str] | None = None, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.database = database
+        self.garbage_collector = garbage_collector
+        self.async_search = async_search
+        self.interactive = interactive
+        self.user_installed = user_installed
+        self.command = command if command != None else ''
+        self.packages = packages if packages != None else []
+        self.managers = []
+        self.async_managers = []
+        if dnf:
+            self.managers.append('dnf')
+        if flatpak:
+            self.managers.append('flatpak')
+        if nix_env:
+            self.managers.append('nix-env')
 
 
 def to_bool(value: str | None):
