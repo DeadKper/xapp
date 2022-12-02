@@ -57,10 +57,7 @@ class XApp:
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} is updating it\'s desktop database...', file=stderr)
             MANAGERS[manager].update_dekstop_db()
 
-    def update(self, packages: list[str] | None):
-        if packages != None and len(packages) == 0:
-            packages = None
-
+    def update(self, packages: list[str]):
         for manager in self.get_managers():
             print(
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} updating...', file=stderr)
