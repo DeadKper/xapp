@@ -162,8 +162,7 @@ def parse_args(args: Sequence[str]):
 
     parser = argparse.ArgumentParser(parents=[base_parser], add_help=True)
 
-    subparser = parser.add_subparsers(
-        title="command", dest="command", required=False)
+    subparser = parser.add_subparsers(dest="command", required=False)
 
     # Install subparser
     command = subparser.add_parser('install', parents=[base_parser],
