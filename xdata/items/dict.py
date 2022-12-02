@@ -8,15 +8,16 @@ from time import time
 
 
 class Dict(JSON):
-    def __init__(self, query: list[str], items: dict[str, dict] = {}, sorted=False, keys_set=False, keys: list[str] = [], expiration: int | None = None, *args, **kwargs) -> None:
+    def __init__(self, query: list[str], managers: str | list[str], items: dict[str, dict] = {}, sorted=False, keys_set=False, keys: list[str] = [], expiration: int | None = None, *args, **kwargs) -> None:
         self.expiration = time() + 21600 if not expiration else expiration
         if self.expiration < time():
             self.expired = True
             return
+        self.managers: list[str] = []
+        self.add_manager(managers)
         self.expired = False
         self.query = query
         self.items: dict[str, Item] = {}
-        self.managers: list[str] = []
         self.sorted = sorted
         self.keys_set = keys_set
         self.keys = keys

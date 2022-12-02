@@ -185,8 +185,9 @@ class XApp:
             self.actioned = True
 
         aux: Dict
+        is_async = self.args.command != ['search'] and self.args.async_search
         for manager in managers:
-            if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
+            if is_async and (manager in self.joined or MANAGERS[manager].is_working()):
                 continue
             self.joined.append(manager)
             aux = MANAGERS[manager].search_response()
@@ -196,7 +197,7 @@ class XApp:
                 dict.add_manager(aux.managers)
                 dict.extend(aux.items)
 
-        if dict and not self.args.async_search:
+        if dict and not is_async:
             print(dict.to_string(managers_order=managers))
 
         return dict
@@ -243,7 +244,7 @@ class XApp:
             error('Action cancelled!', type=WARNING, code=DEFAULT)
 
         try:
-            package_dict: Dict = Dict(package_list)
+            package_dict: Dict = Dict(package_list, [])
             for arg in packages.split(' '):
                 char = arg[-1:]
                 has_manager = char.isalpha()

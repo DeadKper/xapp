@@ -63,7 +63,7 @@ class nixenv(PackageManager):
 
     def search_response(self, item_dict: Dict | None = None):
         if item_dict == None:
-            item_dict = Dict(self.__searched_package__)
+            item_dict = Dict(self.__searched_package__, self.name)
 
         result, _ = self.response(True)
         for line in result.splitlines(False):
