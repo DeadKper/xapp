@@ -108,7 +108,9 @@ class ArgsNamespace(SimpleNamespace):
 
     def set_configs(self, config: ConfigNamespace):
         def get_value(config_val: Any, self_val: Any):
-            if config_val != None and (not self_val or len(self_val) == 0):
+
+            if config_val != None and \
+                    (not self_val or hasattr(self_val, '__len__') and len(self_val) == 0):
                 return config_val
             return self_val
 
