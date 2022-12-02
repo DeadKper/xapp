@@ -208,6 +208,7 @@ class XApp:
         managers: list[str] = self.get_managers()
         manager_dict = {manager[:1]: manager for manager in managers}
         item_dict: Dict | None = None
+        managers_message = ''
 
         if self.args.async_search:
             try:
@@ -220,8 +221,9 @@ class XApp:
                         continue
                     if item_dict == None:
                         item_dict = aux
+                    managers_message = f'{Color.BOLD}{len(self.joined)}/{len(managers)} managers responded!{Color.END}'
                     print(
-                        f' {"":{"-"}<15} {Color.BOLD}{len(self.joined)}/{len(managers)} managers responded! {Color.END} {"":{"-"}<15}')
+                        f' {"":{"-"}<15} {managers_message} {"":{"-"}<15}')
                     if len(aux) == 0:
                         continue
                     print(aux.to_string(managers_order=managers))
@@ -235,8 +237,12 @@ class XApp:
         if not item_dict or len(item_dict) == 0:
             error('No packages were found!', type=ERROR, code=DEFAULT)
 
-        print(
-            f' {"":{"-"}<15} {Color.BOLD}{len(item_dict)} packages found! {Color.END} {"":{"-"}<15}')
+        if self.args.async_search:
+            package_count = len(item_dict)
+            packages_found = f'{Color.BOLD}{package_count} package{"s" if package_count > 1 else ""} found!{Color.END}'
+            print(
+                f' {"":{"-"}<15} {packages_found:^{len(managers_message)}} {"":{"-"}<15}')
+
         print(item_dict.to_string(managers_order=managers))
 
         prefix = f' {Color.BLUE}::{Color.END} '
