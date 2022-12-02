@@ -227,6 +227,9 @@ class XApp:
 
     def run(self):
         has_base_flag = self.args.garbage_collector or self.args.database
+        if not has_base_flag and len(self.args.command) == 0:
+            self.parser.print_help()
+            exit(0)
 
         match self.args.command:
             case 'install':
@@ -245,9 +248,6 @@ class XApp:
                 self.list_packages(self.args.packages)
             case 'search':
                 self.search(self.args.packages)
-            case _:
-                if not has_base_flag:
-                    self.parser.print_usage()
 
         if self.args.garbage_collector:
             self.run_gc()
