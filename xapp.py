@@ -1,64 +1,14 @@
-from xdata import XNamespace
 from xdata.items import Dict
 from xdata.managers import MANAGERS
-from xdata.static import CONFIG, DEFAULT, ERROR, WARNING, Color, sudoloop, get_config, error
+from xdata.static import *
 from typing import Sequence, Callable
-from argparse import ArgumentParser as Parser
 from time import sleep
 from sys import argv, stderr
-
-VERSION = '1.1-beta'
-
-SUB_COMMANDS = (
-    'install',
-    'remove',
-    'update',
-    'list',
-    'search',
-    'dummy'
-)
 
 
 class XApp:
     def __init__(self, args: Sequence[str]) -> None:
-        parser = Parser(prog='xapp', allow_abbrev=True,
-                        description='a simple package manager wrapper',
-                        usage='xapp [options] command [packages ...], \'xapp -h\' for full help',
-                        epilog='if no manager is enable, all will be used; nix-env won\'t be used in search unless specified or flags -i and -a are present')
-        # parser.add_argument('-c', '--cache', action='store_true',
-        #                     help='clean and build package cache')
-        parser.add_argument('-d', '--database', action='store_true',
-                            help='update desktop dabase for all managers')
-        parser.add_argument('-v', '--version', action='version',
-                            version=f'%(prog)s v{VERSION}')
-        parser.add_argument('-a', '--async-search', action='store_true',
-                            help='use async search, use ctrl+c to stop the search')
-        parser.add_argument('-i', '--interactive', action='store_true',
-                            help='use interactive install')
-        parser.add_argument('-g', '--garbage-collector', action='store_true',
-                            help='run garbage collector at the end of the transaction')
-        parser.add_argument('-u', '--user-installed', action='store_true',
-                            help='only list user installed packages')
-        for manager in MANAGERS:
-            parser.add_argument(f'--{manager}', action='store_true',
-                                help=f'enable {manager}')
-        parser.add_argument('command', nargs=1, choices=SUB_COMMANDS,
-                            help='command to execute')
-        parser.add_argument('packages', nargs='*',
-                            help='packages to install, remove, etc...')
-        self.args = parser.parse_args(args=args, namespace=XNamespace)
-
-        self.managers: list[str] | None = None
-        self.async_managers: list[str] | None = None
-        managers: list[str] = []
-        for manager in MANAGERS:
-            if self.args.__dict__[manager.replace('-', '_')]:
-                managers.append(manager)
-
-        if len(managers) > 0:
-            self.managers = managers if len(managers) > 0 else None
-            self.async_managers = []
-
+        self.parser, self.args = parse_args(args)
         self.set_configs()
 
         self.actioned = False
@@ -68,47 +18,35 @@ class XApp:
         configs = get_config(f'{CONFIG}/xapp')
 
         match self.args.command:
-            case ['install']:
+            case 'install':
                 if configs.install.interactive != None and not self.args.interactive:
                     self.args.interactive = configs.install.interactive
-            case ['remove']:
+            case 'remove':
                 if configs.remove.interactive != None and not self.args.interactive:
                     self.args.interactive = configs.remove.interactive
-            case ['list']:
+            case 'list':
                 if configs.list.user_installed != None and not self.args.user_installed:
                     self.args.user_installed = configs.list.user_installed
 
         if configs.search.async_search != None and not self.args.async_search:
             self.args.async_search = configs.search.async_search
 
-        if configs.general.async_managers and self.async_managers == None:
-            self.async_managers = configs.general.async_managers
-        if configs.general.managers and self.managers == None:
-            self.managers = configs.general.managers
+        if configs.general.async_managers and len(self.args.async_managers) == 0:
+            self.args.async_managers = configs.general.async_managers
+        if configs.general.managers and len(self.args.managers) == 0:
+            self.args.managers = configs.general.managers
+
         if configs.general.interactive != None and not self.args.interactive:
             self.args.interactive = configs.general.interactive
         if configs.general.garbage_collector != None and not self.args.garbage_collector:
             self.args.garbage_collector = configs.general.garbage_collector
 
     def get_managers(self, include_slow: bool = True):
-        managers = self.managers
-
-        if managers == None:
-            managers = self.managers
-
-            if not managers:
-                managers = ['dnf', 'flatpak']
-
-            self.managers = managers
-
-        async_managers = self.async_managers
-        if async_managers == None:
-            if not async_managers:
-                async_managers = ['nix-env']
-            self.async_managers = async_managers
-
+        if len(self.args.managers) == 0 and len(self.args.async_managers) == 0 \
+                and not self.args.async_search:
+            error('No package manager was selected', type=ERROR)
         return [man for man in (
-            managers + async_managers if include_slow else managers) if man in MANAGERS]
+            self.args.managers + self.args.async_managers if include_slow else self.args.managers) if man in MANAGERS]
 
     def check_args(self, args):
         if len(args) > 0:
@@ -288,23 +226,28 @@ class XApp:
             error('Invalid package was entered!', type=ERROR, code=ERROR)
 
     def run(self):
+        has_base_flag = self.args.garbage_collector or self.args.database
+
         match self.args.command:
-            case ['install']:
+            case 'install':
                 if self.args.interactive:
                     self.interactive(self.search, self.install)
                 else:
                     self.install(self.args.packages)
-            case ['remove']:
+            case 'remove':
                 # if self.args.interactive:
                 #     self.interactive(self.list_packages, self.remove)
                 # else:
                 self.remove(self.args.packages)
-            case ['update']:
+            case 'update':
                 self.update(self.args.packages)
-            case ['list']:
+            case 'list':
                 self.list_packages(self.args.packages)
-            case ['search']:
+            case 'search':
                 self.search(self.args.packages)
+            case _:
+                if not has_base_flag:
+                    self.parser.print_usage()
 
         if self.args.garbage_collector:
             self.run_gc()
