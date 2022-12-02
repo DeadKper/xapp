@@ -220,12 +220,13 @@ class XApp:
                         continue
                     if item_dict == None:
                         item_dict = aux
-                    print(f' {"":{"-"}<15} Response found! {"":{"-"}<15}')
+                    print(
+                        f' {"":{"-"}<15} {Color.BOLD}{len(self.joined)}/{len(managers)} managers responded! {Color.END} {"":{"-"}<15}')
                     if len(aux) == 0:
                         continue
+                    print(aux.to_string(managers_order=managers))
                     item_dict.add_manager(aux.managers)
                     item_dict.extend(aux.items)
-                    print(item_dict.to_string(managers_order=managers))
             except KeyboardInterrupt:
                 pass
         else:
@@ -233,6 +234,10 @@ class XApp:
 
         if not item_dict or len(item_dict) == 0:
             error('No packages were found!', type=ERROR, code=DEFAULT)
+
+        print(
+            f' {"":{"-"}<15} {Color.BOLD}{len(item_dict)} packages found! {Color.END} {"":{"-"}<15}')
+        print(item_dict.to_string(managers_order=managers))
 
         prefix = f' {Color.BLUE}::{Color.END} '
         message = f'\n{prefix}Enter packages to install (eg: 1 2 3 5, 1-3 5) [0 to exit]'
