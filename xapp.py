@@ -96,18 +96,19 @@ class XApp:
             self.actioned = True
 
         aux: Dict
-        dict = Dict(packages, [])
         for manager in managers:
             if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
                 continue
             self.joined.append(manager)
             aux = MANAGERS[manager].search_response()
-            if len(aux) != 0:
+            if dict == None:
+                dict = aux
+            else:
                 dict.add_manager(aux.managers)
                 dict.extend(aux.items)
 
         if self.args.command == 'search':
-            if len(dict) == 0:
+            if not dict or len(dict) == 0:
                 error('No packages were found!', type=ERROR, code=DEFAULT)
             print(dict.to_string(managers_order=managers))
 
