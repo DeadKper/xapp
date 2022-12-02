@@ -230,7 +230,7 @@ class XApp:
                     item_dict.add_manager(aux.managers)
                     item_dict.extend(aux.items)
             except KeyboardInterrupt:
-                pass
+                print()
         else:
             item_dict = dict_func(package_list, None)
 
