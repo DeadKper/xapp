@@ -117,18 +117,19 @@ def make_default_config(file: str):
     config = ConfigParser()
 
     config.add_section('general')
-    config.set('general', '# interactive', 'True')
+    config.set('general', '# update_desktop_db', 'True')
     config.set('general', '# garbage_collector', 'True')
     config.set('general', 'managers', 'dnf,flatpak')
     config.set('general', 'async_managers', 'nix-env')
     config.add_section('install')
     config.set('install', '# interactive', 'True')
     config.add_section('remove')
-    config.set('remove', '# interactive', 'True')
     config.add_section('list')
     config.set('list', '# user_installed', 'True')
     config.add_section('search')
     config.set('search', '# async_search', 'True')
+    config.add_section('update')
+    config.set('general', '# garbage_collector', 'True')
 
     with open(file, 'w') as config_file:
         config.write(config_file)
@@ -151,7 +152,8 @@ def parse_args(args: Sequence[str]):
                              version=f'%(prog)s v{VERSION}')
     # base_parser.add_argument('-c', '--cache', action='store_true',
     #                          help='clean and build package cache')
-    base_parser.add_argument('-d', '--database', action='store_true',
+    base_parser.add_argument('-d', '--desktop-database', dest='update_desktop_db',
+                             action='store_true',
                              help='update desktop dabase for all supported managers')
     base_parser.add_argument('-g', '--garbage-collector', action='store_true',
                              help='run garbage collector at the end of the transaction')

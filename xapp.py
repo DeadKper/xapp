@@ -9,37 +9,10 @@ from sys import argv, stderr
 class XApp:
     def __init__(self, args: Sequence[str]) -> None:
         self.parser, self.args = parse_args(args)
-        self.set_configs()
+        self.args.set_configs(get_config(f'{CONFIG}/xapp'))
 
         self.actioned = False
         self.joined: list[str] = []
-
-    def set_configs(self):
-        configs = get_config(f'{CONFIG}/xapp')
-
-        match self.args.command:
-            case 'install':
-                if configs.install.interactive != None and not self.args.interactive:
-                    self.args.interactive = configs.install.interactive
-            case 'remove':
-                if configs.remove.interactive != None and not self.args.interactive:
-                    self.args.interactive = configs.remove.interactive
-            case 'list':
-                if configs.list.user_installed != None and not self.args.user_installed:
-                    self.args.user_installed = configs.list.user_installed
-
-        if configs.search.async_search != None and not self.args.async_search:
-            self.args.async_search = configs.search.async_search
-
-        if configs.general.async_managers and len(self.args.async_managers) == 0:
-            self.args.async_managers = configs.general.async_managers
-        if configs.general.managers and len(self.args.managers) == 0:
-            self.args.managers = configs.general.managers
-
-        if configs.general.interactive != None and not self.args.interactive:
-            self.args.interactive = configs.general.interactive
-        if configs.general.garbage_collector != None and not self.args.garbage_collector:
-            self.args.garbage_collector = configs.general.garbage_collector
 
     def get_managers(self, include_slow: bool = True):
         if len(self.args.managers) == 0 and len(self.args.async_managers) == 0 \
@@ -123,19 +96,19 @@ class XApp:
             self.actioned = True
 
         aux: Dict
-        is_async = self.args.command != ['search'] and self.args.async_search
+        dict = Dict(packages, [])
         for manager in managers:
-            if is_async and (manager in self.joined or MANAGERS[manager].is_working()):
+            if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
                 continue
             self.joined.append(manager)
             aux = MANAGERS[manager].search_response()
-            if dict == None:
-                dict = aux
-            else:
+            if len(aux) != 0:
                 dict.add_manager(aux.managers)
                 dict.extend(aux.items)
 
-        if dict and not is_async:
+        if self.args.command == 'search':
+            if len(dict) == 0:
+                error('No packages were found!', type=ERROR, code=DEFAULT)
             print(dict.to_string(managers_order=managers))
 
         return dict
@@ -226,7 +199,7 @@ class XApp:
             error('Invalid package was entered!', type=ERROR, code=ERROR)
 
     def run(self):
-        has_base_flag = self.args.garbage_collector or self.args.database
+        has_base_flag = self.args.garbage_collector or self.args.update_desktop_db
         if not has_base_flag and len(self.args.command) == 0:
             self.parser.print_help()
             exit(0)
@@ -252,7 +225,7 @@ class XApp:
         if self.args.garbage_collector:
             self.run_gc()
 
-        if self.args.database:
+        if self.args.update_desktop_db:
             self.update_desktopdb()
 
         sudoloop(False)
