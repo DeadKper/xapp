@@ -9,6 +9,7 @@ from sys import argv, stderr
 class XApp:
     def __init__(self, args: Sequence[str]) -> None:
         self.parser, self.args = parse_args(args)
+        self.run_flags = self.args.garbage_collector or self.args.update_desktop_db
         self.args.set_configs(get_config(f'{CONFIG}/xapp'))
 
         self.actioned = False
@@ -188,8 +189,7 @@ class XApp:
             error('Invalid package was entered!', type=ERROR, code=ERROR)
 
     def run(self):
-        has_base_flag = self.args.garbage_collector or self.args.update_desktop_db
-        if not has_base_flag and len(self.args.command) == 0:
+        if not self.run_flags and len(self.args.command) == 0:
             self.parser.print_help()
             exit(0)
 
