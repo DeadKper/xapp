@@ -79,8 +79,8 @@ class PackageManager:
                             stdout=PIPE if stdout else None,
                             stderr=PIPE if stderr else None)
             out, err = process.communicate()
-            self.__result[0] = out.decode()
-            self.__result[1] = err.decode()
+            self.__result[0] = out.decode() if stdout else ''
+            self.__result[1] = err.decode() if stderr else ''
 
         run_args = (command + args, pipe_out, pipe_err)
 
