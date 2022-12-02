@@ -8,62 +8,43 @@ class nixenv(PackageManager):
         super().__init__('nix-env', True)
 
     def install(self, packages: list[str] | Dict, fail=False):
-        args = ['nix-env', '-f', '<nixpkgs>', '-iA', '-Q']
-        if isinstance(packages, Dict):
-            packages = packages.pop_manager(self.name)
-            if len(packages) == 0:
-                return False
-        args.extend(packages)
-        self.__execute__(args, False, fail)
-        self.join()
-        if len(self.__result__[1]) > 0:
+        if not super()._run(['nix-env', '-f', '<nixpkgs>', '-iA', '-Q'],
+                            args=packages,
+                            pipe_err=fail):
             return False
         self.update_dekstop_db()
         return True
 
     def remove(self, packages: list[str] | Dict, fail=False):
-        args = ['nix-env', '-f', '<nixpkgs>', '-e']
-        if isinstance(packages, Dict):
-            packages = packages.pop_manager(self.name)
-            if len(packages) == 0:
-                return False
-        args.extend(packages)
-        self.__execute__(args, False, fail)
-        self.join()
-        if len(self.__result__[1]) > 0:
+        if not super()._run(['nix-env', '-f', '<nixpkgs>', '-e', '-Q'],
+                            args=packages,
+                            pipe_err=fail):
             return False
         self.update_dekstop_db()
         return True
 
-    def update(self, packages: list[str] | None = None, fail=False):
-        args = ['nix-env', '-f', '<nixpkgs>', '-uA', '-Q']
-        if packages != None:
-            args.extend(packages)
-        self.__execute__(args, False, fail)
-        self.join()
-        if len(self.__result__[1]) > 0:
-            return False
-        return True
+    def update(self, packages: list[str] = [], fail=False):
+        return super()._run(['nix-env', '-f', '<nixpkgs>', '-uA', '-Q'],
+                            args=packages,
+                            pipe_err=fail)
 
     def run_gc(self):
-        self.__execute__(
-            ['nix-collect-garbage', '--delete-older-than', '30d'], False)
-        self.join()
+        return super()._run(['nix-collect-garbage', '--delete-older-than', '30d'])
 
-    def list_packages(self, user_installed: bool, packages: list[str] | None = None):
-        args = ['nix-env', '-q']
-        self.__execute__(args, False)
-        self.join()
+    def list_packages(self, user_installed: bool):
+        return super()._run(['nix-env', '-q'])
 
-    def search(self, package: list[str]):
-        self.__searched_package__ = package
-        args = args = ['nix-env', '-f', '<nixpkgs>', '-qa', '--description']
-        args.extend([f'.*{value}.*' for value in package])
-        self.__execute__(args, True)
+    def search(self, packages: list[str]):
+        super().search(packages)
+        return super()._run(['nix-env', '-f', '<nixpkgs>', '-qa', '--description'],
+                            args=[f'.*{value}.*' for value in packages],
+                            pipe_out=True,
+                            pipe_err=True,
+                            threaded=True)
 
     def search_response(self, item_dict: Dict | None = None):
         if item_dict == None:
-            item_dict = Dict(self.__searched_package__, self.name)
+            item_dict = Dict(self.query, self.name)
 
         result, _ = self.response(True)
         for line in result.splitlines(False):
@@ -77,8 +58,8 @@ class nixenv(PackageManager):
         return item_dict
 
     def update_dekstop_db(self):
-        self.__execute__(['rsync', '-prLK', '--chmod=u+rwx', '--include', 'share', '--include',
-                          'share/applications/***', '--exclude', '*', f'{self.home}/.nix-profile/',
-                          f'{self.home}/.local/share/nix-env/', '--delete-before'], False, False, just_run=True)
-        self.__execute__(['update-desktop-database',
-                         f'{self.home}/.local/share/nix-env/share/applications'], False, False, True)
+        self._run(['rsync', '-prLK', '--chmod=u+rwx', '--include', 'share', '--include',
+                   'share/applications/***', '--exclude', '*', f'{self.home}/.nix-profile/',
+                   f'{self.home}/.local/share/nix-env/', '--delete-before'])
+        self._run(['update-desktop-database',
+                   f'{self.home}/.local/share/nix-env/share/applications'])

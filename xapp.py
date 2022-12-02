@@ -65,25 +65,13 @@ class XApp:
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} updating...', file=stderr)
             MANAGERS[manager].update(packages)
 
-    def list_packages(self, packages: list[str] | None, dict: Dict | None = None) -> Dict | None:
-        if dict != None:
-            return dict
-
-        if packages != None and len(packages) == 0:
-            packages = None
-
-        aux: Dict
+    def list_packages(self):
         for manager in self.get_managers():
             print(
                 f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} listing:', file=stderr)
-            aux = MANAGERS[manager].list_packages(
-                self.args.user_installed, packages)
-            if dict == None:
-                dict = aux
-            else:
-                dict.add_manager(aux.managers)
-                dict.extend(aux.items)
-        return dict
+
+            MANAGERS[manager].list_packages(
+                self.args.user_installed)
 
     def search(self, packages: list[str], dict: Dict | None = None) -> Dict | None:
         self.check_args(packages)
@@ -219,7 +207,7 @@ class XApp:
             case 'update':
                 self.update(self.args.packages)
             case 'list':
-                self.list_packages(self.args.packages)
+                self.list_packages()
             case 'search':
                 self.search(self.args.packages)
 
