@@ -71,77 +71,65 @@ class XApp:
             MANAGERS[manager].list_packages(
                 self.args.user_installed)
 
-    def search(self, packages: list[str], dict: Dict | None = None) -> Dict | None:
+    def search(self, packages: list[str]) -> Dict:
         self.check_args(packages)
-        managers = self.get_managers(
-            self.args.interactive and self.args.async_search)
+        managers = self.get_managers(self.args.async_search)
 
         if not self.actioned:
             for manager in managers:
                 MANAGERS[manager].search(packages)
             self.actioned = True
 
-        aux: Dict
-        for manager in managers:
-            if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
-                continue
-            self.joined.append(manager)
-            aux = MANAGERS[manager].search_response()
-            if dict == None:
-                dict = aux
-            else:
+        dict = Dict(packages, [])
+        replaced = r'{}'
+        managers_message = f'{replaced}/{len(managers)} managers responded!'
+        message_size = len(managers_message.format(len(managers)))
+        section_message = f' {"":{"-"}<15} {Color.BOLD}{replaced}{Color.END} {"":{"-"}<15}'
+
+        def get_search():
+            for manager in managers:
+                if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
+                    continue
+                self.joined.append(manager)
+                aux = MANAGERS[manager].search_response()
+                if self.args.async_search:
+                    print(section_message.format(
+                        f'{managers_message.format(len(self.joined)):^{message_size}}'))
+                    if len(aux) == 0:
+                        continue
+                    print(aux.to_string())
+                elif len(aux) == 0:
+                    continue
                 dict.add_manager(aux.managers)
                 dict.extend(aux.items)
-
-        if self.args.command == 'search':
-            if not dict or len(dict) == 0:
-                error('No packages were found!', type=ERROR, code=DEFAULT)
-            print(dict.to_string(managers_order=managers))
-
-        return dict
-
-    def interactive(self, dict_func: Callable[[list[str], Dict | None], Dict | None], run_func: Callable[[list[str] | Dict], None]):
-        aux: Dict | None = None
-        package_list: list[str] = self.args.packages
-        managers: list[str] = self.get_managers()
-        manager_dict = {manager[:1]: manager for manager in managers}
-        item_dict: Dict | None = None
-        managers_message = ''
 
         if self.args.async_search:
             try:
                 print(f'{Color.YELLOW}Waiting{Color.END} for a response ...')
-                aux = None
                 while len(self.joined) < len(managers):
                     sleep(0.5)
-                    aux = dict_func(package_list, None)
-                    if aux == None:
-                        continue
-                    if item_dict == None:
-                        item_dict = aux
-                    managers_message = f'{Color.BOLD}{len(self.joined)}/{len(managers)} managers responded!{Color.END}'
-                    print(
-                        f' {"":{"-"}<15} {managers_message} {"":{"-"}<15}')
-                    if len(aux) == 0:
-                        continue
-                    print(aux.to_string(managers_order=managers))
-                    item_dict.add_manager(aux.managers)
-                    item_dict.extend(aux.items)
+                    get_search()
             except KeyboardInterrupt:
                 print()
+            package_count = len(dict)
+            package_message = f'{package_count} package{"s" if package_count > 1 else ""} found!'
+            print(section_message.format(f'{package_message:^{message_size}}'))
         else:
-            item_dict = dict_func(package_list, None)
+            get_search()
 
-        if not item_dict or len(item_dict) == 0:
+        if len(dict) == 0:
             error('No packages were found!', type=ERROR, code=DEFAULT)
+        print(dict.to_string(managers_order=managers))
 
-        if self.args.async_search:
-            package_count = len(item_dict)
-            packages_found = f'{Color.BOLD}{package_count} package{"s" if package_count > 1 else ""} found!{Color.END}'
-            print(
-                f' {"":{"-"}<15} {packages_found:^{len(managers_message)}} {"":{"-"}<15}')
+        return dict
 
-        print(item_dict.to_string(managers_order=managers))
+    def interactive(self, dict_func: Callable[[list[str]], Dict], run_func: Callable[[list[str] | Dict], None]):
+        package_list: list[str] = self.args.packages
+        managers: list[str] = self.get_managers()
+        manager_dict = {manager[:1]: manager for manager in managers}
+        dict: Dict
+
+        dict = dict_func(package_list)
 
         prefix = f' {Color.BLUE}::{Color.END} '
         message = f'\n{prefix}Enter packages to install (eg: 1 2 3 5, 1-3 5) [0 to exit]'
@@ -162,10 +150,10 @@ class XApp:
                     arg = arg[:-1]
 
                 if len(arg) < 3:
-                    items = [item_dict.index(int(arg) - 1)]
+                    items = [dict.index(int(arg) - 1)]
                 else:
                     start, stop = arg.split('-')
-                    items = [item_dict.index(i) for i in
+                    items = [dict.index(i) for i in
                              range(int(start) - 1, int(stop))]
 
                 if has_manager:
