@@ -141,7 +141,7 @@ class ArgsNamespace(SimpleNamespace):
             case 'search':
                 set_general(config.search)
                 self.async_search = get_value(
-                    config.install.async_search, self.async_search)
+                    config.search.async_search, self.async_search)
             case 'remove':
                 set_general(config.remove)
             case 'update':
