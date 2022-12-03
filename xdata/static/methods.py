@@ -200,5 +200,7 @@ def parse_args(args: Sequence[str]):
                                    help='search for packages to install')
     command.add_argument('-a', '--async-search', action='store_true',
                          help='use async search, ctrl+c to stop the search')
+    command.add_argument('packages', nargs='+',
+                         help='package/s to remove')
 
     return parser, ArgsNamespace(**parser.parse_args(args=args).__dict__)
