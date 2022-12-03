@@ -112,8 +112,10 @@ class XApp:
             except KeyboardInterrupt:
                 print()
             package_count = len(dict)
-            package_message = f'{package_count} package{"s" if package_count > 1 else ""} found!'
-            print(section_message.format(f'{package_message:^{message_size}}'))
+            if package_count > 0:
+                package_message = f'{package_count} package{"s" if package_count > 1 else ""} found!'
+                print(section_message.format(
+                    f'{package_message:^{message_size}}'))
         else:
             get_search()
 
