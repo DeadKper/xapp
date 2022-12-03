@@ -104,6 +104,7 @@ class ArgsNamespace(SimpleNamespace):
             self.managers.append('flatpak')
         if nix_env:
             self.managers.append('nix-env')
+        self.__flag_manager = len(self.managers) > 0
         super().__init__(**kwargs)
 
     def set_configs(self, config: ConfigNamespace):
@@ -115,9 +116,10 @@ class ArgsNamespace(SimpleNamespace):
             return self_val
 
         def set_general(confs: General):
-            self.async_managers = get_value(
-                confs.async_managers, self.async_managers)
-            self.managers = get_value(confs.managers, self.managers)
+            if not self.__flag_manager:
+                self.async_managers = get_value(
+                    confs.async_managers, self.async_managers)
+                self.managers = get_value(confs.managers, self.managers)
             self.garbage_collector = get_value(
                 confs.garbage_collector, self.garbage_collector)
             self.update_desktop_db = get_value(
