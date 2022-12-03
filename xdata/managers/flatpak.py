@@ -38,6 +38,8 @@ class flatpak(PackageManager):
                             threaded=True)
 
     def search_response(self, item_dict: Dict | None = None):
+        super().search_response()
+
         if item_dict == None:
             item_dict = Dict(self.query, self.name)
 

@@ -36,6 +36,7 @@ class PackageManager:
         self.query = packages
 
     def search_response(self) -> Dict:
+        self.join()
         return EMPTY_DICT
 
     def update_dekstop_db(self):
