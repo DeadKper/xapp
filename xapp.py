@@ -207,7 +207,14 @@ class XApp:
 
 if __name__ == '__main__':
     try:
-        xapp = XApp(argv[1:])
+        env_args = argv[1:].copy()
+        for i in range(len(env_args)):
+            if env_args[i].startswith('-'):
+                continue
+            if i > 0:
+                env_args.insert(0, env_args.pop(i))
+            break
+        xapp = XApp(env_args)
         xapp.run()
     except KeyboardInterrupt:
         error('\nAction interrupted by user!', type=WARNING, code=DEFAULT)
