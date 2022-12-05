@@ -4,8 +4,6 @@ from xdata.static import sudoloop, error, ERROR
 from xdata.items import Dict, EMPTY_DICT
 from pathlib import Path
 
-SUDO_PREFIX = ('sudo', '-n', '--')
-
 
 class PackageManager:
     def __init__(self, name: str, has_desktopdb=False) -> None:
