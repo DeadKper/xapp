@@ -117,18 +117,20 @@ def make_default_config(file: str):
     config = ConfigParser()
 
     config.add_section('general')
-    config.set('general', '# interactive', 'True')
+    config.set('general', '# update_desktop_db', 'True')
     config.set('general', '# garbage_collector', 'True')
-    config.set('general', 'managers', 'dnf,flatpak')
+    config.set('general', '# managers', 'dnf,flatpak')
     config.set('general', 'async_managers', 'nix-env')
     config.add_section('install')
     config.set('install', '# interactive', 'True')
+    config.set('install', 'async_search', 'True')
     config.add_section('remove')
-    config.set('remove', '# interactive', 'True')
     config.add_section('list')
     config.set('list', '# user_installed', 'True')
     config.add_section('search')
     config.set('search', '# async_search', 'True')
+    config.add_section('update')
+    config.set('general', 'garbage_collector', 'True')
 
     with open(file, 'w') as config_file:
         config.write(config_file)
@@ -151,14 +153,13 @@ def parse_args(args: Sequence[str]):
                              version=f'%(prog)s v{VERSION}')
     # base_parser.add_argument('-c', '--cache', action='store_true',
     #                          help='clean and build package cache')
-    base_parser.add_argument('-d', '--database', action='store_true',
+    base_parser.add_argument('-d', '--desktop-database', dest='update_desktop_db',
+                             action='store_true',
                              help='update desktop dabase for all supported managers')
     base_parser.add_argument('-g', '--garbage-collector', action='store_true',
                              help='run garbage collector at the end of the transaction')
-
-    for manager in MANAGER_LIST:
-        base_parser.add_argument(f'--{manager}', action='store_true',
-                                 help=f'enable {manager}')
+    base_parser.add_argument('-m', '--managers', nargs=1,
+                             help=f'managers to use {MANAGER_LIST}')
 
     parser = argparse.ArgumentParser(parents=[base_parser], add_help=True)
 
@@ -197,5 +198,7 @@ def parse_args(args: Sequence[str]):
                                    help='search for packages to install')
     command.add_argument('-a', '--async-search', action='store_true',
                          help='use async search, ctrl+c to stop the search')
+    command.add_argument('packages', nargs='+',
+                         help='package/s to remove')
 
     return parser, ArgsNamespace(**parser.parse_args(args=args).__dict__)

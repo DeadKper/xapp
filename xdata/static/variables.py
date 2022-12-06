@@ -1,13 +1,17 @@
 from os import environ
 from pathlib import Path
+from shutil import which
 
 DEFAULT = 0
 ERROR = 1
 WARNING = 2
 
-MANAGER_LIST = ['dnf', 'flatpak', 'nix-env']
+MANAGER_LIST = tuple(
+    [man for man in
+        ('dnf', 'flatpak', 'nix-env')
+        if which(man) is not None])
 
-VERSION = '1.2-beta'
+VERSION = '1.3-beta'
 
 HOME = Path.home()
 DATA = environ['XDG_DATA_HOME'] if len(

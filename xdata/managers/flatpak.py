@@ -8,63 +8,40 @@ class flatpak(PackageManager):
         super().__init__('flatpak')
 
     def install(self, packages: list[str] | Dict, fail=False):
-        args = ['flatpak', 'install']
-        if isinstance(packages, Dict):
-            packages = packages.pop_manager(self.name)
-            if len(packages) == 0:
-                return False
-        args.extend(packages)
-        args.append('-y')
-        self.__execute__(args, False, fail)
-        self.join()
-        if len(self.__result__[1]) > 0:
-            return False
-        return True
+        return super()._run(['flatpak', 'install', '-y'],
+                            args=packages,
+                            pipe_err=fail)
 
     def remove(self, packages: list[str] | Dict, fail=False):
-        args = ['flatpak', 'remove']
-        if isinstance(packages, Dict):
-            packages = packages.pop_manager(self.name)
-            if len(packages) == 0:
-                return False
-        args.extend(packages)
-        args.append('-y')
-        self.__execute__(args, False, fail)
-        self.join()
-        if len(self.__result__[1]) > 0:
-            return False
-        return True
+        return super()._run(['flatpak', 'remove', '-y'],
+                            args=packages,
+                            pipe_err=fail)
 
-    def update(self, packages: list[str] | None = None, fail=False):
-        args = ['flatpak', 'update']
-        if packages != None:
-            args.extend(packages)
-        args.append('-y')
-        self.__execute__(args, False, fail)
-        self.join()
-        if len(self.__result__[1]) > 0:
-            return False
-        return True
+    def update(self, packages: list[str] = [], fail=False):
+        return super()._run(['flatpak', 'update', '-y'],
+                            args=packages,
+                            pipe_err=fail)
 
     def run_gc(self):
-        self.__execute__(['flatpak', 'uninstall', '--unused', '-y'], False)
-        self.join()
+        return super()._run(['flatpak', 'uninstall', '--unused', '-y'])
 
-    def list_packages(self, user_installed: bool, packages: list[str] | None = None):
-        args = ['flatpak', 'list']
-        self.__execute__(args, False)
-        self.join()
+    def list_packages(self, user_installed: bool):
+        return super()._run(['flatpak', 'list'])
 
-    def search(self, package: list[str]):
-        self.__searched_package__ = package
-        args = ['flatpak', 'search',
-                '--columns=name:f,application:f,description:f']
-        args.extend(package)
-        self.__execute__(args, True)
+    def search(self, packages: list[str]):
+        super().search(packages)
+        return super()._run(['flatpak', 'search',
+                             '--columns=name:f,application:f,description:f'],
+                            args=packages,
+                            pipe_out=True,
+                            pipe_err=True,
+                            threaded=True)
 
     def search_response(self, item_dict: Dict | None = None):
+        super().search_response()
+
         if item_dict == None:
-            item_dict = Dict(self.__searched_package__, self.name)
+            item_dict = Dict(self.query, self.name)
 
         result, _ = self.response(True)
         for line in result.splitlines(False):

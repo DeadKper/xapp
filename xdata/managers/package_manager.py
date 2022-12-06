@@ -1,6 +1,6 @@
 from subprocess import Popen, PIPE
 from threading import Thread
-from xdata.static import sudoloop, error
+from xdata.static import sudoloop, error, ERROR
 from xdata.items import Dict, EMPTY_DICT
 from pathlib import Path
 
@@ -8,10 +8,10 @@ from pathlib import Path
 class PackageManager:
     def __init__(self, name: str, has_desktopdb=False) -> None:
         self.name = name
-        self.__thread__: Thread
-        self.__result__ = ['', '']
-        self.__piped__ = False
-        self.__joined__ = True
+        self.__thread: Thread
+        self.__result = ['', '']
+        self.__joined = True
+        self.query: list[str] = []
         self.home = Path.home()
         self.has_desktopdb = has_desktopdb
 
@@ -27,57 +27,69 @@ class PackageManager:
     def run_gc(self):
         pass
 
-    def list_packages(self, user_installed: bool, packages: list[str] | None = None) -> Dict:
-        return EMPTY_DICT
-
-    def search(self, packages: list[str]):
+    def list_packages(self, user_installed: bool):
         pass
 
+    def search(self, packages: list[str]):
+        self.query = packages
+
     def search_response(self) -> Dict:
+        self.join()
         return EMPTY_DICT
 
     def update_dekstop_db(self):
         pass
 
     def is_working(self):
-        if self.__joined__:
+        if self.__joined:
             return True
-        if self.__thread__.is_alive():
+        if self.__thread.is_alive():
             return True
         self.join()
         return False
 
     def join(self):
-        if not self.__joined__:
-            self.__thread__.join()
-            self.__joined__ = True
+        if not self.__joined:
+            self.__thread.join()
+            self.__joined = True
 
     def response(self, join=False) -> tuple[str, str]:
         if join:
             self.join()
-        return tuple(self.__result__) if self.__joined__ else ('', '')
+        return tuple(self.__result) if self.__joined else ('', '')
 
-    def __execute__(self, args: list[str], pipe: bool, pipe_error=True, just_run=False):
-        if args[0] == 'sudo':
+    def _run(self, command: list[str], args: list[str] | Dict = [], sudo=False, pipe_out=False, pipe_err=False, threaded=False):
+        if len(command) == 0:
+            error(
+                f'{self.name} tried to run a command when no command was given', type=ERROR)
+
+        if sudo:
             if not sudoloop():
                 error(f'{self.name!r} needs sudo to work!', type=1)
+            command = ['sudo', '-n', '--'] + command
 
-        if just_run:
-            Popen(args=args,
-                  stdout=PIPE if pipe else None,
-                  stderr=PIPE if pipe_error else None).communicate()
-            return
+        if isinstance(args, Dict):
+            args = args.pop_manager(self.name)
+            if len(args) == 0:
+                return False
 
-        def run():
+        def run(args: list[str], stdout: bool, stderr: bool):
             process = Popen(args=args,
-                            stdout=PIPE if pipe else None,
-                            stderr=PIPE if pipe_error else None)
-            stdout, stderr = process.communicate()
-            self.__result__[0] = stdout.decode() if pipe else ''
-            self.__result__[1] = stderr.decode() if pipe_error else ''
+                            stdout=PIPE if stdout else None,
+                            stderr=PIPE if stderr else None)
+            out, err = process.communicate()
+            self.__result[0] = out.decode() if stdout else ''
+            self.__result[1] = err.decode() if stderr else ''
 
-        self.join()
-        self.__piped__ = pipe
-        self.__joined__ = False
-        self.__thread__ = Thread(target=run)
-        self.__thread__.start()
+        run_args = (command + args, pipe_out, pipe_err)
+
+        if threaded:
+            self.join()
+            self.__joined = False
+            self.__thread = Thread(target=run, args=run_args)
+            self.__thread.start()
+        else:
+            run(*run_args)
+            if len(self.__result[1]) > 0:
+                return False
+        return True

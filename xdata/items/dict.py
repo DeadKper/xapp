@@ -115,7 +115,7 @@ class Dict(JSON):
 
             name = f'{Color.BOLD}{name}{Color.END} '
 
-            aux = item.id()
+            # aux = item.id()
             id = ''
             # for query in self.query:
             #     id = sed(f'({query})', f'{Color.UNDERLINE}\\1{Color.END}',
