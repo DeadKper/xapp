@@ -17,9 +17,15 @@ class XApp:
         self.parser, self.args = parse_args(args)
         self.run_flags = self.args.garbage_collector or self.args.update_desktop_db
         self.args.set_configs(get_config(f'{CONFIG}/xapp'))
+
+        self.args.async_managers = [
+            man for man in self.args.async_managers if man in MANAGER_LIST]
         if len(self.args.managers) == 0:
             self.args.managers = [
                 man for man in self.managers if man not in self.args.async_managers]
+        else:
+            self.args.managers = [
+                man for man in self.args.managers if man in MANAGER_LIST]
 
         self.actioned = False
         self.joined: list[str] = []
@@ -27,9 +33,8 @@ class XApp:
     def get_managers(self, include_slow: bool = True):
         if len(self.args.managers) == 0 and len(self.args.async_managers) == 0 \
                 and not self.args.async_search:
-            error('No package manager was selected', type=ERROR)
-        return [man for man in (
-            self.args.managers + self.args.async_managers if include_slow else self.args.managers) if man in self.managers]
+            error('No valid package manager was selected', type=ERROR)
+        return self.args.managers + self.args.async_managers if include_slow else self.args.managers
 
     def check_args(self, args):
         if len(args) > 0:
