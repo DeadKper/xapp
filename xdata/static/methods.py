@@ -120,7 +120,7 @@ def make_default_config(file: str):
     config.set('general', '# update_desktop_db', 'True')
     config.set('general', '# garbage_collector', 'True')
     config.set('general', '# managers', 'dnf,flatpak')
-    config.set('general', '# async_managers', 'nix-env')
+    config.set('general', 'async_managers', 'nix-env')
     config.add_section('install')
     config.set('install', '# interactive', 'True')
     config.set('install', 'async_search', 'True')
