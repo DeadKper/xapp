@@ -31,10 +31,11 @@ class XApp:
         self.joined: list[str] = []
 
     def get_managers(self, include_slow: bool = True):
-        if len(self.args.managers) == 0 and len(self.args.async_managers) == 0 \
-                and not self.args.async_search:
+        managers = self.args.managers + \
+            self.args.async_managers if include_slow else self.args.managers
+        if len(managers) == 0:
             error('No valid package manager was selected', type=ERROR)
-        return self.args.managers + self.args.async_managers if include_slow else self.args.managers
+        return managers
 
     def check_args(self, args):
         if len(args) > 0:
