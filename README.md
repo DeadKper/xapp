@@ -2,9 +2,13 @@
 
 A dnf, flatpak and nix-env wrapper inspired by paru
 
-# Usage
+# Install
 
-Extract the files to a folder and alias it to xapp.py for it to work (alias xapp="python3 /path/to/folder/xapp.py")
+git clone git@github.com:DeadKper/xapp.git
+cd xapp
+ln -s $PWD/xapp.py ~/.local/bin/xapp
+
+~/.local/bin needs to be added to your path
 
 # Setup
 
