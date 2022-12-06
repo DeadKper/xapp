@@ -91,21 +91,18 @@ class ArgsNamespace(SimpleNamespace):
     interactive: bool
     user_installed: bool
 
-    def __init__(self, dnf=False, flatpak=False, nix_env=False, packages=[], **kwargs: Any) -> None:
+    def __init__(self, managers: list[str] | None = None, packages=[], **kwargs: Any) -> None:
         self.async_search = False
         self.interactive = False
         self.user_installed = False
         self.packages = packages
-        self.managers = []
         self.async_managers = []
-        if dnf:
-            self.managers.append('dnf')
-        if flatpak:
-            self.managers.append('flatpak')
-        if nix_env:
-            self.managers.append('nix-env')
-        self.__flag_manager = len(self.managers) > 0
-        super().__init__(**kwargs)
+        if managers is None:
+            managers = []
+        else:
+            managers = managers[0].split(',')
+
+        super().__init__(managers=managers, **kwargs)
 
     def set_configs(self, config: ConfigNamespace):
         def get_value(config_val: Any, self_val: Any):
@@ -116,7 +113,7 @@ class ArgsNamespace(SimpleNamespace):
             return self_val
 
         def set_general(confs: General):
-            if not self.__flag_manager:
+            if len(self.managers) == 0:
                 self.async_managers = get_value(
                     confs.async_managers, self.async_managers)
                 self.managers = get_value(confs.managers, self.managers)

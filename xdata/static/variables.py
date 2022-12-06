@@ -1,11 +1,15 @@
 from os import environ
 from pathlib import Path
+from shutil import which
 
 DEFAULT = 0
 ERROR = 1
 WARNING = 2
 
-MANAGER_LIST = ['dnf', 'flatpak', 'nix-env']
+MANAGER_LIST = tuple(
+    [man for man in
+        ('dnf', 'flatpak', 'nix-env')
+        if which(man) is not None])
 
 VERSION = '1.2-beta'
 

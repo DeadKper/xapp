@@ -7,19 +7,19 @@ from xdata.static import *
 from typing import Sequence, Callable
 from time import sleep
 from sys import argv, stderr
-from shutil import which
 
 
 class XApp:
     def __init__(self, args: Sequence[str]) -> None:
-        self.managers: dict[str, PackageManager] = {}
-        for manager in MANAGERS:
-            if which(manager) is not None:
-                self.managers[manager] = MANAGERS[manager]
+        self.managers = {k: v for k, v in MANAGERS.items()
+                         if k in MANAGER_LIST}
 
         self.parser, self.args = parse_args(args)
         self.run_flags = self.args.garbage_collector or self.args.update_desktop_db
         self.args.set_configs(get_config(f'{CONFIG}/xapp'))
+        if len(self.args.managers) == 0:
+            self.args.managers = [
+                man for man in self.managers if man not in self.args.async_managers]
 
         self.actioned = False
         self.joined: list[str] = []
@@ -217,8 +217,9 @@ class XApp:
 if __name__ == '__main__':
     try:
         env_args = argv[1:].copy()
+        commands = ('install', 'remove', 'update', 'list', 'search')
         for i in range(len(env_args)):
-            if env_args[i].startswith('-'):
+            if env_args[i] not in commands:
                 continue
             if i > 0:
                 env_args.insert(0, env_args.pop(i))

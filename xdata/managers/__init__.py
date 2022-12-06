@@ -10,4 +10,4 @@ MANAGERS: dict[str, PackageManager] = FrozenDict({
     'nix-env': nixenv(),
 })
 
-__all__ = ['MANAGERS', 'PackageManager', 'dnf', 'flatpak', 'nixenv']
+__all__ = ['MANAGERS', 'PackageManager']
