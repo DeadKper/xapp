@@ -11,7 +11,7 @@ MANAGER_LIST = tuple(
         ('dnf', 'flatpak', 'nix-env')
         if which(man) is not None])
 
-VERSION = '1.2-beta'
+VERSION = '1.3-beta'
 
 HOME = Path.home()
 DATA = environ['XDG_DATA_HOME'] if len(
