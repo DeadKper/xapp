@@ -2,15 +2,21 @@
 # -*- coding: utf-8 -*-
 
 from xdata.items import Dict
-from xdata.managers import MANAGERS
+from xdata.managers import MANAGERS, PackageManager
 from xdata.static import *
 from typing import Sequence, Callable
 from time import sleep
 from sys import argv, stderr
+from shutil import which
 
 
 class XApp:
     def __init__(self, args: Sequence[str]) -> None:
+        self.managers: dict[str, PackageManager] = {}
+        for manager in MANAGERS:
+            if which(manager) is not None:
+                self.managers[manager] = MANAGERS[manager]
+
         self.parser, self.args = parse_args(args)
         self.run_flags = self.args.garbage_collector or self.args.update_desktop_db
         self.args.set_configs(get_config(f'{CONFIG}/xapp'))
@@ -23,7 +29,7 @@ class XApp:
                 and not self.args.async_search:
             error('No package manager was selected', type=ERROR)
         return [man for man in (
-            self.args.managers + self.args.async_managers if include_slow else self.args.managers) if man in MANAGERS]
+            self.args.managers + self.args.async_managers if include_slow else self.args.managers) if man in self.managers]
 
     def check_args(self, args):
         if len(args) > 0:
@@ -35,43 +41,43 @@ class XApp:
 
         for manager in self.get_managers():
             print(
-                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} installing...', file=stderr)
-            MANAGERS[manager].install(packages)
+                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} installing...', file=stderr)
+            self.managers[manager].install(packages)
 
     def remove(self, packages: list[str] | Dict):
         self.check_args(packages)
 
         for manager in self.get_managers():
             print(
-                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} removing...', file=stderr)
-            MANAGERS[manager].remove(packages)
+                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} removing...', file=stderr)
+            self.managers[manager].remove(packages)
 
     def run_gc(self):
         for manager in self.get_managers():
             print(
-                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} running garbage collector...', file=stderr)
-            MANAGERS[manager].run_gc()
+                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} running garbage collector...', file=stderr)
+            self.managers[manager].run_gc()
 
     def update_desktopdb(self):
         for manager in self.get_managers():
-            if not MANAGERS[manager].has_desktopdb:
+            if not self.managers[manager].has_desktopdb:
                 continue
             print(
-                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} is updating it\'s desktop database...', file=stderr)
-            MANAGERS[manager].update_dekstop_db()
+                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} is updating it\'s desktop database...', file=stderr)
+            self.managers[manager].update_dekstop_db()
 
     def update(self, packages: list[str]):
         for manager in self.get_managers():
             print(
-                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} updating...', file=stderr)
-            MANAGERS[manager].update(packages)
+                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} updating...', file=stderr)
+            self.managers[manager].update(packages)
 
     def list_packages(self):
         for manager in self.get_managers():
             print(
-                f'\n{Color.BOLD}{MANAGERS[manager].name.upper()}{Color.END} listing:', file=stderr)
+                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} listing:', file=stderr)
 
-            MANAGERS[manager].list_packages(
+            self.managers[manager].list_packages(
                 self.args.user_installed)
 
     def search(self, packages: list[str]) -> Dict:
@@ -80,7 +86,7 @@ class XApp:
 
         if not self.actioned:
             for manager in managers:
-                MANAGERS[manager].search(packages)
+                self.managers[manager].search(packages)
             self.actioned = True
 
         dict = Dict(packages, [])
@@ -91,10 +97,10 @@ class XApp:
 
         def get_search():
             for manager in managers:
-                if self.args.async_search and (manager in self.joined or MANAGERS[manager].is_working()):
+                if self.args.async_search and (manager in self.joined or self.managers[manager].is_working()):
                     continue
                 self.joined.append(manager)
-                aux = MANAGERS[manager].search_response()
+                aux = self.managers[manager].search_response()
                 if self.args.async_search:
                     print(section_message.format(
                         f'{managers_message.format(len(self.joined)):^{message_size}}'))
