@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from xdata.items import Dict
-from xdata.managers import MANAGERS, PackageManager
+from xdata.managers import MANAGERS
 from xdata.static import *
 from typing import Sequence, Callable
 from time import sleep
