@@ -4,7 +4,7 @@ A dnf, flatpak and nix-env wrapper inspired by paru
 
 # Install
 
-git clone git@github.com:DeadKper/xapp.git
+git clone https://github.com/DeadKper/xapp.git
 cd xapp
 ln -s $PWD/xapp.py ~/.local/bin/xapp
 
