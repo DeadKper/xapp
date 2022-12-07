@@ -70,12 +70,12 @@ def sudoloop(run=True):
 
 
 def item_confidence(query_list: list[str], name: str, id: str | None = None):
+    name = name.lower()
     bonus = len(query_list) + 2
     penalty_count = 0
     result = 0
     query_negative = name
     for query in query_list:
-        query = query.lower()
         query_negative = sed(query, '', query_negative)
         if name.find(query) == -1:
             penalty_count += 1
@@ -88,12 +88,12 @@ def item_confidence(query_list: list[str], name: str, id: str | None = None):
         result += 3000 // (len(query_list) - penalty_count + 1)
 
     if id != None:
+        id = id.lower()
         bonus = len(query_list) + 2
         penalty_count = 0
         id_result = 0
         query_negative = id
         for query in query_list:
-            query = query
             query_negative = sed(query, '', query_negative)
             if id.find(query) == -1:
                 penalty_count += 1
