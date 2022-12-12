@@ -178,7 +178,7 @@ class XApp:
                 if has_manager:
                     arg = arg[:-1]
 
-                if len(arg) < 3:
+                if arg.find('-') == -1:
                     items = [dict.index(int(arg) - 1)]
                 else:
                     start, stop = arg.split('-')
