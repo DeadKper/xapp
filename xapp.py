@@ -107,7 +107,7 @@ class XApp:
                 self.managers[manager].search(packages)
             self.actioned = True
 
-        dict = Dict(packages, [])
+        dict = Dict(packages, [], sorted=len(managers) == 1)
         replaced = r'{}'
         managers_message = f'{replaced}/{len(managers)} managers responded!'
         message_size = len(managers_message.format(len(managers)))
@@ -119,7 +119,7 @@ class XApp:
                     continue
                 self.joined.append(manager)
                 aux = self.managers[manager].search_response()
-                if self.args.async_search:
+                if self.args.async_search and len(managers) > 1:
                     print(section_message.format(
                         f'{managers_message.format(len(self.joined)):^{message_size}}'))
                     if len(aux) == 0:
