@@ -94,6 +94,9 @@ class Dict(JSON):
         result = ''
         aux: Any
 
+        if not self.keys_set:
+            self.__set_keys__()
+
         if not self.sorted:
             self.sort()
 

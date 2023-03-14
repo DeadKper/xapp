@@ -107,7 +107,7 @@ class XApp:
                 self.managers[manager].search(packages)
             self.actioned = True
 
-        dict = Dict(packages, [], sorted=len(managers) == 1)
+        dict = Dict(packages, [])
         replaced = r'{}'
         managers_message = f'{replaced}/{len(managers)} managers responded!'
         message_size = len(managers_message.format(len(managers)))
@@ -148,6 +148,9 @@ class XApp:
 
         if len(dict) == 0:
             error('No packages were found!', type=ERROR, code=DEFAULT)
+
+        dict.sorted = len(managers) == 1
+
         print(dict.to_string(managers_order=managers))
 
         return dict
