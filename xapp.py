@@ -54,31 +54,36 @@ class XApp:
     def install(self, packages: list[str] | Dict):
         self.check_args(packages)
 
-        for manager in self.get_managers():
-            if isinstance(packages, Dict):
+        if isinstance(packages, list):
+            print(
+                f'\n{Color.BOLD}{self.main.name.upper()}{Color.END} installing...', file=stderr)
+            self.main.install(packages)
+        else:
+            for manager in self.get_managers():
                 usable = packages.pop_manager(manager)
                 if len(usable) == 0:
                     continue
-            else:
-                usable = packages
-            print(
-                f'\n{Color.BOLD}{manager.upper()}{Color.END} installing...', file=stderr)
-            self.managers[manager].install(usable)
+
+                print(
+                    f'\n{Color.BOLD}{manager.upper()}{Color.END} installing...', file=stderr)
+                self.managers[manager].install(usable)
 
     def remove(self, packages: list[str] | Dict):
         self.check_args(packages)
 
-        for manager in self.get_managers():
-            if isinstance(packages, Dict):
+        if isinstance(packages, list):
+            print(
+                f'\n{Color.BOLD}{self.main.name.upper()}{Color.END} removing...', file=stderr)
+            self.main.remove(packages)
+        else:
+            for manager in self.get_managers():
                 usable = packages.pop_manager(manager)
                 if len(usable) == 0:
                     continue
-            else:
-                usable = packages
 
-            print(
-                f'\n{Color.BOLD}{manager.upper()}{Color.END} removing...', file=stderr)
-            self.managers[manager].remove(packages)
+                print(
+                    f'\n{Color.BOLD}{manager.upper()}{Color.END} removing...', file=stderr)
+                self.managers[manager].remove(usable)
 
     def run_gc(self):
         for manager in self.get_managers():
