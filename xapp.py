@@ -54,16 +54,31 @@ class XApp:
     def install(self, packages: list[str] | Dict):
         self.check_args(packages)
 
-        print(
-            f'\n{Color.BOLD}{self.main.name.upper()}{Color.END} installing...', file=stderr)
-        self.main.install(packages)
+        for manager in self.get_managers():
+            if isinstance(packages, Dict):
+                usable = packages.pop_manager(manager)
+                if len(usable) == 0:
+                    continue
+            else:
+                usable = packages
+            print(
+                f'\n{Color.BOLD}{manager.upper()}{Color.END} installing...', file=stderr)
+            self.managers[manager].install(usable)
 
     def remove(self, packages: list[str] | Dict):
         self.check_args(packages)
 
-        print(
-            f'\n{Color.BOLD}{self.main.name.upper()}{Color.END} removing...', file=stderr)
-        self.main.remove(packages)
+        for manager in self.get_managers():
+            if isinstance(packages, Dict):
+                usable = packages.pop_manager(manager)
+                if len(usable) == 0:
+                    continue
+            else:
+                usable = packages
+
+            print(
+                f'\n{Color.BOLD}{manager.upper()}{Color.END} removing...', file=stderr)
+            self.managers[manager].remove(packages)
 
     def run_gc(self):
         for manager in self.get_managers():
