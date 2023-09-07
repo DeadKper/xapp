@@ -48,7 +48,8 @@ class Dict(JSON):
                 self.add_item(item.name.lower(), item)  # type: ignore
 
     def add(self, manager: str, name: str, description: str | None = None, id: str | None = None):
-        item = Item(item_confidence(self.query, name, id))
+        query = [query.lower() for query in self.query]
+        item = Item(item_confidence(query, name, id))
         item.add(manager, name, description, id)
         self.add_item(item.name.lower(), item)  # type: ignore
 
@@ -92,6 +93,9 @@ class Dict(JSON):
     def to_string(self, reverse=True, main_manager=True, managers_order: list[str] | None = None):
         result = ''
         aux: Any
+
+        if not self.keys_set:
+            self.__set_keys__()
 
         if not self.sorted:
             self.sort()

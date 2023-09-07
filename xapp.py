@@ -20,6 +20,7 @@ class XApp:
 
         self.args.async_managers = [
             man for man in self.args.async_managers if man in MANAGER_LIST]
+
         if len(self.args.managers) == 0:
             self.args.managers = [
                 man for man in self.managers if man not in self.args.async_managers]
@@ -27,14 +28,22 @@ class XApp:
             self.args.managers = [
                 man for man in self.args.managers if man in MANAGER_LIST]
 
+        if len(self.args.managers) == 1:
+            self.main = MANAGERS[self.args.managers[0]]
+        elif len(self.args.default_managers) == 0:
+            self.main = MANAGERS[self.args.managers[0]]
+        else:
+            self.main = MANAGERS[self.args.default_managers[0]]
+
+        if len(self.get_managers(self.args.async_search)) == 0:
+            error('No valid package manager was selected', type=ERROR)
+
         self.actioned = False
         self.joined: list[str] = []
 
     def get_managers(self, include_slow: bool = True):
         managers = self.args.managers + \
             self.args.async_managers if include_slow else self.args.managers
-        if len(managers) == 0:
-            error('No valid package manager was selected', type=ERROR)
         return managers
 
     def check_args(self, args):
@@ -45,18 +54,36 @@ class XApp:
     def install(self, packages: list[str] | Dict):
         self.check_args(packages)
 
-        for manager in self.get_managers():
+        if isinstance(packages, list):
             print(
-                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} installing...', file=stderr)
-            self.managers[manager].install(packages)
+                f'\n{Color.BOLD}{self.main.name.upper()}{Color.END} installing...', file=stderr)
+            self.main.install(packages)
+        else:
+            for manager in self.get_managers():
+                usable = packages.pop_manager(manager)
+                if len(usable) == 0:
+                    continue
+
+                print(
+                    f'\n{Color.BOLD}{manager.upper()}{Color.END} installing...', file=stderr)
+                self.managers[manager].install(usable)
 
     def remove(self, packages: list[str] | Dict):
         self.check_args(packages)
 
-        for manager in self.get_managers():
+        if isinstance(packages, list):
             print(
-                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} removing...', file=stderr)
-            self.managers[manager].remove(packages)
+                f'\n{Color.BOLD}{self.main.name.upper()}{Color.END} removing...', file=stderr)
+            self.main.remove(packages)
+        else:
+            for manager in self.get_managers():
+                usable = packages.pop_manager(manager)
+                if len(usable) == 0:
+                    continue
+
+                print(
+                    f'\n{Color.BOLD}{manager.upper()}{Color.END} removing...', file=stderr)
+                self.managers[manager].remove(usable)
 
     def run_gc(self):
         for manager in self.get_managers():
@@ -73,10 +100,15 @@ class XApp:
             self.managers[manager].update_dekstop_db()
 
     def update(self, packages: list[str]):
-        for manager in self.get_managers():
+        if len(packages) > 0:
             print(
-                f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} updating...', file=stderr)
-            self.managers[manager].update(packages)
+                f'\n{Color.BOLD}{self.main.name.upper()}{Color.END} is updating...', file=stderr)
+            self.main.update(packages)
+        else:
+            for manager in self.get_managers():
+                print(
+                    f'\n{Color.BOLD}{self.managers[manager].name.upper()}{Color.END} is updating...', file=stderr)
+                self.managers[manager].update(packages)
 
     def list_packages(self):
         for manager in self.get_managers():
@@ -107,7 +139,7 @@ class XApp:
                     continue
                 self.joined.append(manager)
                 aux = self.managers[manager].search_response()
-                if self.args.async_search:
+                if self.args.async_search and len(managers) > 1:
                     print(section_message.format(
                         f'{managers_message.format(len(self.joined)):^{message_size}}'))
                     if len(aux) == 0:
@@ -136,6 +168,9 @@ class XApp:
 
         if len(dict) == 0:
             error('No packages were found!', type=ERROR, code=DEFAULT)
+
+        dict.sorted = len(managers) == 1
+
         print(dict.to_string(managers_order=managers))
 
         return dict
@@ -166,7 +201,7 @@ class XApp:
                 if has_manager:
                     arg = arg[:-1]
 
-                if len(arg) < 3:
+                if arg.find('-') == -1:
                     items = [dict.index(int(arg) - 1)]
                 else:
                     start, stop = arg.split('-')

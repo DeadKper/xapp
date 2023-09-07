@@ -33,12 +33,13 @@ def to_decimal(value: str | None):
 
 
 class General(SimpleNamespace):
-    def __init__(self, update_desktop_db: str | None = None, garbage_collector: str | None = None, managers: str | None = None, async_managers: str | None = None, **kwargs: Any) -> None:
+    def __init__(self, update_desktop_db: str | None = None, garbage_collector: str | None = None, managers: str | None = None, async_managers: str | None = None, default_managers: str | None = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.update_desktop_db = to_bool(update_desktop_db)
         self.garbage_collector = to_bool(garbage_collector)
         self.managers = to_list(managers)
         self.async_managers = to_list(async_managers)
+        self.default_managers = to_list(default_managers)
 
 
 class Install(General):
@@ -84,6 +85,7 @@ class ArgsNamespace(SimpleNamespace):
     update_desktop_db: bool
     garbage_collector: bool
     command: str | None
+    default_managers: list[str]
     managers: list[str]
     async_managers: list[str]
     packages: list[str]
@@ -91,7 +93,7 @@ class ArgsNamespace(SimpleNamespace):
     interactive: bool
     user_installed: bool
 
-    def __init__(self, managers: list[str] | None = None, packages=[], **kwargs: Any) -> None:
+    def __init__(self, managers: list[str] | None = None, packages=[], default_managers: list[str] | None = None, **kwargs: Any) -> None:
         self.async_search = False
         self.interactive = False
         self.user_installed = False
@@ -102,7 +104,12 @@ class ArgsNamespace(SimpleNamespace):
         else:
             managers = managers[0].split(',')
 
-        super().__init__(managers=managers, **kwargs)
+        if default_managers is None:
+            default_managers = []
+        else:
+            default_managers = default_managers[0].split(',')
+
+        super().__init__(managers=managers, default_managers=default_managers, **kwargs)
 
     def set_configs(self, config: ConfigNamespace):
         def get_value(config_val: Any, self_val: Any):
@@ -117,6 +124,8 @@ class ArgsNamespace(SimpleNamespace):
                 self.async_managers = get_value(
                     confs.async_managers, self.async_managers)
                 self.managers = get_value(confs.managers, self.managers)
+            self.default_managers = get_value(
+                confs.default_managers, self.default_managers)
             self.garbage_collector = get_value(
                 confs.garbage_collector, self.garbage_collector)
             self.update_desktop_db = get_value(

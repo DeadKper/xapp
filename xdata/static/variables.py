@@ -14,13 +14,9 @@ MANAGER_LIST = tuple(
 VERSION = '1.3-beta'
 
 HOME = Path.home()
-DATA = environ['XDG_DATA_HOME'] if len(
-    environ['XDG_DATA_HOME']) > 0 else f'{HOME}/.local/share'
-CACHE = environ['XDG_CACHE_HOME'] if len(
-    environ['XDG_CACHE_HOME']) > 0 else f'{HOME}/.cache'
-CONFIG = environ['XDG_CONFIG_HOME'] if len(
-    environ['XDG_CONFIG_HOME']) > 0 else f'{HOME}/.config'
-
+DATA = environ.get('XDG_DATA_HOME', f'{HOME}/.local/share')
+CACHE = environ.get('XDG_CACHE_HOME', f'{HOME}/.cache')
+CONFIG = environ.get('XDG_CONFIG_HOME', f'{HOME}/.config')
 
 class Color:
     PURPLE = '\033[95m'
