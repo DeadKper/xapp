@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/python3
 
 from xdata.items import Dict
 from xdata.managers import MANAGERS
